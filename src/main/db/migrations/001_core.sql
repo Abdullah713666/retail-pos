@@ -1,0 +1,1 @@
+-- Core database schema placeholder (implemented in M1)

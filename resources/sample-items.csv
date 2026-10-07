@@ -1,0 +1,6 @@
+name,barcode,category,base_unit,sale_price,cost_price,pack_name,pack_factor
+Panadol 500mg,10001,Medicines,tablet,3.50,2.80,Box,200
+Arinac Forte,10002,Medicines,tablet,8.00,6.50,Box,100
+Brufen 400mg,10003,Medicines,tablet,5.00,4.00,Box,100
+Disprin,10004,Medicines,tablet,2.00,1.50,Box,300
+Flygy 400mg,10005,Medicines,tablet,6.00,4.80,Box,100

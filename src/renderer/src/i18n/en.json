@@ -1,0 +1,52 @@
+{
+  "app": {
+    "title": "Retail POS"
+  },
+  "nav": {
+    "sale": "Sale",
+    "items": "Items",
+    "parties": "Parties",
+    "purchases": "Purchases",
+    "cash": "Cash",
+    "reports": "Reports",
+    "settings": "Settings",
+    "setup": "Setup"
+  },
+  "screens": {
+    "sale": {
+      "title": "Sale Screen",
+      "subtitle": "Point of sale register and billing"
+    },
+    "items": {
+      "title": "Items",
+      "subtitle": "Item catalog, prices, and inventory units"
+    },
+    "parties": {
+      "title": "Parties & Khata",
+      "subtitle": "Customers, suppliers, and ledger accounts"
+    },
+    "purchases": {
+      "title": "Purchases",
+      "subtitle": "Stock receiving and supplier bills"
+    },
+    "cash": {
+      "title": "Cash Management",
+      "subtitle": "Cash shifts, expenses, and day-end register"
+    },
+    "reports": {
+      "title": "Reports",
+      "subtitle": "Sales, profits, stock, and ledger reports"
+    },
+    "settings": {
+      "title": "Settings",
+      "subtitle": "Shop settings, printing, users, and backup"
+    },
+    "setup": {
+      "title": "Initial Setup",
+      "subtitle": "First-run configuration wizard"
+    }
+  },
+  "common": {
+    "comingSoon": "Under development for upcoming milestones."
+  }
+}

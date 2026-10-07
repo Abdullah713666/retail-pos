@@ -1,0 +1,52 @@
+{
+  "app": {
+    "title": "ریٹیل پی او ایس"
+  },
+  "nav": {
+    "sale": "فروخت (Sale)",
+    "items": "اشیاء (Items)",
+    "parties": "کھاتہ دار (Parties)",
+    "purchases": "خریداری (Purchases)",
+    "cash": "کیش (Cash)",
+    "reports": "رپورٹس (Reports)",
+    "settings": "سیٹنگز (Settings)",
+    "setup": "سیٹ اپ (Setup)"
+  },
+  "screens": {
+    "sale": {
+      "title": "فروخت کی اسکرین",
+      "subtitle": "بلنگ اور سیل کاؤنٹر"
+    },
+    "items": {
+      "title": "اشیاء کی فہرست",
+      "subtitle": "قیمتیں اور یونٹس"
+    },
+    "parties": {
+      "title": "کھاتہ جات",
+      "subtitle": "گاہک، سپلائرز اور لیجر"
+    },
+    "purchases": {
+      "title": "خریداری کا اندراج",
+      "subtitle": "اسٹاک کی وصولی اور بل"
+    },
+    "cash": {
+      "title": "کیش مینجمنٹ",
+      "subtitle": "کیش شفٹ اور اخراجات"
+    },
+    "reports": {
+      "title": "رپورٹس",
+      "subtitle": "سیلز، منافع اور اسٹاک رپورٹس"
+    },
+    "settings": {
+      "title": "سیٹنگز",
+      "subtitle": "دکان کی سیٹنگز اور پرنٹر"
+    },
+    "setup": {
+      "title": "ابتدائی سیٹ اپ",
+      "subtitle": "پہلی بار چلانے کے لیے رہنمائی"
+    }
+  },
+  "common": {
+    "comingSoon": "اگلے مراحل میں تیار کیا جائے گا۔"
+  }
+}

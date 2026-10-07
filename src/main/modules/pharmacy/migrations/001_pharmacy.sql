@@ -1,0 +1,1 @@
+-- Pharmacy module migration placeholder (implemented in M2/M12)
