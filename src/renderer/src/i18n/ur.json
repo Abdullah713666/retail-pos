@@ -10,7 +10,8 @@
     "cash": "کیش (Cash)",
     "reports": "رپورٹس (Reports)",
     "settings": "سیٹنگز (Settings)",
-    "setup": "سیٹ اپ (Setup)"
+    "setup": "سیٹ اپ (Setup)",
+    "expiry": "ایکسپائری (Expiry)"
   },
   "screens": {
     "sale": {
@@ -44,6 +45,10 @@
     "setup": {
       "title": "ابتدائی سیٹ اپ",
       "subtitle": "پہلی بار چلانے کے لیے رہنمائی"
+    },
+    "expiry": {
+      "title": "ایکسپائری کنسول",
+      "subtitle": "قریبی میعاد کی دوائیں اور واپسی"
     }
   },
   "common": {

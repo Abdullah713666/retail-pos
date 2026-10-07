@@ -22,9 +22,9 @@ Mark items `[x]` when done. Each milestone ends with: typecheck + lint + tests p
 - **Done when:** app starts and creates `shop.db`; tests prove migrations apply on an empty DB and are idempotent.
 
 ## M2 — Module system skeleton
-- [ ] Main `MainModule` + renderer `UiModule` interfaces (§7), registry reading `settings.enabled_modules`
-- [ ] Module migrations run after core
-- [ ] Empty `pharmacy` module that adds one migration and one menu item ("Expiry") with a placeholder screen
+- [x] Main `MainModule` + renderer `UiModule` interfaces (§7), registry reading `settings.enabled_modules`
+- [x] Module migrations run after core
+- [x] Empty `pharmacy` module that adds one migration and one menu item ("Expiry") with a placeholder screen
 - **Done when:** with pharmacy enabled the menu item appears; with it disabled it doesn't; app works either way.
 
 ## M3 — Settings, users, first-run wizard, login
@@ -32,7 +32,7 @@ Mark items `[x]` when done. Each milestone ends with: typecheck + lint + tests p
 - [ ] Users service: create, list, deactivate, PIN hash (Node `crypto.scrypt`), verify PIN; roles
 - [ ] First-run wizard (§8.8) — printer test can be a stub until M8
 - [ ] Login screen: pick user, enter PIN (numeric keypad on screen + keyboard)
-- [ ] Role-based menu hiding and IPC permission checks
+- [ ] Role-based menu hiding and IPC permission checks (`modules:setEnabled` and settings writes = owner only)
 - [ ] i18n set up; all new strings in en.json + ur.json; language switch in Settings
 - **Done when:** fresh install → wizard → login → Sale screen; cashier can't open Settings.
 

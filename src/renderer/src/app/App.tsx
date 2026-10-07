@@ -5,6 +5,7 @@ import { HashRouter } from 'react-router-dom'
 import { theme } from './theme'
 import { AppRoutes } from './routes'
 import { MigrationErrorScreen } from '../screens/MigrationErrorScreen'
+import { ModulesProvider } from '../modules'
 
 export const App: React.FC = () => {
   const [migrationError, setMigrationError] = useState<string | null>(null)
@@ -37,9 +38,11 @@ export const App: React.FC = () => {
       {migrationError ? (
         <MigrationErrorScreen error={migrationError} onRetry={checkMigration} />
       ) : checking ? null : (
-        <HashRouter>
-          <AppRoutes />
-        </HashRouter>
+        <ModulesProvider>
+          <HashRouter>
+            <AppRoutes />
+          </HashRouter>
+        </ModulesProvider>
       )}
     </MantineProvider>
   )

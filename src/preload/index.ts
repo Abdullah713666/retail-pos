@@ -8,6 +8,10 @@ const api: IpcApi = {
   },
   db: {
     getMigrationStatus: () => ipcRenderer.invoke('db:getMigrationStatus')
+  },
+  modules: {
+    getEnabled: () => ipcRenderer.invoke('modules:getEnabled'),
+    setEnabled: (moduleIds: string[]) => ipcRenderer.invoke('modules:setEnabled', moduleIds)
   }
 }
 

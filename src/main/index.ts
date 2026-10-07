@@ -3,11 +3,13 @@ import { join } from 'path'
 import { registerIpcHandlers, setMigrationStatus } from './ipc/register'
 import { getDb, closeDb } from './db/connection'
 import { runMigrations } from './db/migrate'
+import { initModules } from './modules/registry'
 
 function initDatabase(): void {
   try {
     const db = getDb()
     runMigrations(db)
+    initModules({ db })
     setMigrationStatus(true, null)
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Database initialization failed'

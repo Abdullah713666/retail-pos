@@ -10,7 +10,8 @@
     "cash": "Cash",
     "reports": "Reports",
     "settings": "Settings",
-    "setup": "Setup"
+    "setup": "Setup",
+    "expiry": "Expiry"
   },
   "screens": {
     "sale": {
@@ -44,6 +45,10 @@
     "setup": {
       "title": "Initial Setup",
       "subtitle": "First-run configuration wizard"
+    },
+    "expiry": {
+      "title": "Expiry Console",
+      "subtitle": "Track near-expiry batches and supplier returns"
     }
   },
   "common": {

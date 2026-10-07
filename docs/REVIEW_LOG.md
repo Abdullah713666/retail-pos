@@ -94,3 +94,38 @@ Newest entry at the top. Gemini adds a **Build** entry after each milestone; Cla
 ### [Review] M1 fixes — 2026-10-08
 - Verdict: **approved**. All 5 fixes verified; typecheck, lint, 35 tests pass.
 - Next: M2.
+
+### [Build] M2 — Module system skeleton — 2026-10-08
+- Summary: Defined MainModule and UiModule interfaces per ARCHITECTURE §7. Implemented module registry that reads settings.enabled_modules and runs module migrations after core migrations. Created pharmacy module skeleton with pharmacy/001_init migration (pharmacy_item_info) and Expiry menu item + screen. Sidebar and routes dynamically mount active UI modules, and app functions with zero modules enabled.
+- Files: src/main/modules/types.ts, src/main/modules/registry.ts, src/main/modules/registry.test.ts, src/main/modules/pharmacy/index.ts, src/main/modules/pharmacy/migrations/001_pharmacy.sql, src/renderer/src/modules/types.ts, src/renderer/src/modules/registry.ts, src/renderer/src/modules/registry.test.ts, src/renderer/src/modules/ModuleContext.tsx, src/renderer/src/modules/index.ts, src/renderer/src/modules/pharmacy/index.tsx, src/renderer/src/modules/pharmacy/ExpiryScreen.tsx, src/renderer/src/app/App.tsx, src/renderer/src/app/layout.tsx, src/renderer/src/app/routes.tsx, src/shared/ipc-contract.ts, src/preload/index.ts, src/main/ipc/register.ts, src/main/index.ts, src/renderer/src/i18n/en.json, src/renderer/src/i18n/ur.json
+- Checks: typecheck ✅ lint ✅ tests ✅ (48 tests)
+- Manual test steps:
+  1. Run `npm run dev` from project root. Notice that without pharmacy enabled, the sidebar displays only core items (Sale, Items, Parties, Purchases, Cash, Reports, Settings).
+  2. Open DevTools (Ctrl+Shift+I) and run `await window.api.modules.setEnabled(['pharmacy']); location.reload();`.
+  3. Notice that "Expiry" (or Urdu "ایکسپائری (Expiry)") now appears in the sidebar above Settings.
+  4. Click "Expiry" to navigate to `/pharmacy/expiry` and verify the Expiry Console placeholder screen renders cleanly.
+  5. In DevTools, run `await window.api.modules.setEnabled([]); location.reload();`. Verify "Expiry" disappears from the menu and the app continues working as a plain POS with zero modules enabled.
+- Open questions / deviations:
+  - None.
+
+
+### [Review] M2 — 2026-10-08
+- Verdict: **fixes needed** (small). Module contract, ?raw migrations, renderer context and dynamic menu are good.
+- Fixes:
+  1. **Keep the active modules in the registry.** `initModules()` returns the list but nobody stores it, so `getStockAllocator()` can never be used later. Store the result in a module-level variable inside `registry.ts` and add `getActiveModules(): MainModule[]`. `initModules` must replace (not append to) this list each time, so disabling a module removes it. Update tests.
+  2. **Only accept known module IDs.** In `modules:setEnabled`, reject IDs not in `AVAILABLE_MODULES` (return `err` with code `UNKNOWN_MODULE`) and remove duplicates.
+  3. **Run migrations before saving the setting.** In `setEnabled`: first apply the migrations of the newly enabled modules; only if that succeeds, save `enabled_modules`. Otherwise a failed migration would leave a module enabled and the app would fail on every start. Add a test where a module migration fails and `enabled_modules` stays unchanged.
+- Note for M3: `modules:setEnabled` must become **owner-only** when IPC permission checks are added.
+
+### [Build] Fixes for M2 — 2026-10-08
+- Summary: Applied all 3 review fixes from Claude's review of M2. Stored active modules in registry with getActiveModules() replacing on each init, validated and deduplicated module IDs in setEnabled with UNKNOWN_MODULE rejection, ran migrations before persisting enabled_modules, and added comprehensive unit tests.
+- Fix details:
+  - Fix 1: Added `activeModules` module-level state and `getActiveModules(): MainModule[]` in `src/main/modules/registry.ts`. `initModules()` replaces `activeModules` each run so disabling removes modules. Updated `getStockAllocator()` to default to `activeModules`.
+  - Fix 2: In `setEnabledModuleIds` (and `modules:setEnabled` IPC), deduplicated module IDs with `new Set` and rejected any unknown IDs not in `AVAILABLE_MODULES`, returning `err({ code: 'UNKNOWN_MODULE', message: ... })`.
+  - Fix 3: In `setEnabledModuleIds`, applied migrations for enabled modules first; only if migrations succeed is `enabled_modules` persisted to `settings`. Added unit test proving that a failing module migration returns `MIGRATION_FAILED` and leaves `enabled_modules` unchanged in database.
+- Checks: typecheck ✅ lint ✅ tests ✅ (52 tests)
+
+
+### [Review] M2 fixes — 2026-10-08
+- Verdict: **approved**. All 3 fixes verified; typecheck, lint, 52 tests pass.
+- Next: M3 (remember: `modules:setEnabled` and settings writes are owner-only).

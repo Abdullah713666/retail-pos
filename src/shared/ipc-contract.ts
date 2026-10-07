@@ -13,4 +13,8 @@ export interface IpcApi {
   db: {
     getMigrationStatus: () => Promise<Result<MigrationStatus>>
   }
+  modules: {
+    getEnabled: () => Promise<Result<string[]>>
+    setEnabled: (moduleIds: string[]) => Promise<Result<void>>
+  }
 }
