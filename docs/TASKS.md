@@ -14,11 +14,11 @@ Mark items `[x]` when done. Each milestone ends with: typecheck + lint + tests p
 - **Done when:** `npm run dev` opens the window on Linux Mint, sidebar navigation works, all scripts pass.
 
 ## M1 — Database + shared basics
-- [ ] `src/shared/money.ts` (toPaisa, fromPaisa, formatPKR "Rs 1,234.50", multiply price×qty with half-up rounding) + tests
-- [ ] `src/shared/result.ts` Result type; IPC handler helper that validates with zod and catches errors
-- [ ] `db/connection.ts` with pragmas (§5), `db/migrate.ts` runner, `001_core.sql` with all tables + indexes from §6
-- [ ] Test helper: create in-memory DB with migrations applied
-- [ ] Error screen if migrations fail
+- [x] `src/shared/money.ts` (toPaisa, fromPaisa, formatPKR "Rs 1,234.50", multiply price×qty with half-up rounding) + tests
+- [x] `src/shared/result.ts` Result type; IPC handler helper that validates with zod and catches errors
+- [x] `db/connection.ts` with pragmas (§5), `db/migrate.ts` runner, `001_core.sql` with all tables + indexes from §6
+- [x] Test helper: create in-memory DB with migrations applied
+- [x] Error screen if migrations fail
 - **Done when:** app starts and creates `shop.db`; tests prove migrations apply on an empty DB and are idempotent.
 
 ## M2 — Module system skeleton

@@ -48,5 +48,11 @@
   },
   "common": {
     "comingSoon": "Under development for upcoming milestones."
+  },
+  "migrationError": {
+    "title": "Database Initialization Failed",
+    "description": "The application could not prepare the database. Ensure that the database folder is accessible, then click Retry or restart the app.",
+    "retry": "Retry",
+    "details": "Details:"
   }
 }

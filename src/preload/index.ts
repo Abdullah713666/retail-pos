@@ -5,6 +5,9 @@ const api: IpcApi = {
   ping: () => ipcRenderer.invoke('ping'),
   app: {
     getVersion: () => ipcRenderer.invoke('app:getVersion')
+  },
+  db: {
+    getMigrationStatus: () => ipcRenderer.invoke('db:getMigrationStatus')
   }
 }
 

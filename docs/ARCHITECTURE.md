@@ -101,7 +101,8 @@ Rules: keep files under ~300 lines; one service per domain; no circular imports 
 `journal_mode = WAL`, `synchronous = FULL`, `foreign_keys = ON`, `busy_timeout = 5000`. DB file lives in `app.getPath('userData')/data/shop.db`.
 
 ### Migrations
-- Plain `.sql` files, numbered, never edited after being merged. Table `schema_migrations(id TEXT PRIMARY KEY, applied_at)`.
+- Plain `.sql` files, numbered, never edited after the first release (before release they may be edited; delete the dev DB after).
+- SQL files are imported with Vite `?raw` so they are bundled; never read them from disk at runtime (they are not shipped in the installer). Table `schema_migrations(id TEXT PRIMARY KEY, applied_at)`.
 - Core migrations run first, then each enabled module's migrations (id prefixed, e.g. `pharmacy/001_init`).
 - Runner applies each file in a transaction; on failure, app shows an error screen and does not start.
 
@@ -135,7 +136,7 @@ A module is a folder in `src/main/modules/<id>/` plus `src/renderer/src/modules/
 // src/main/modules/types.ts
 export interface MainModule {
   id: string                       // 'pharmacy'
-  migrationsDir: string            // absolute path to its .sql files
+  migrations: Migration[]          // SQL imported with Vite '?raw' (like core) so it is bundled into the app
   registerIpc(ctx: ModuleContext): void
   stockAllocator?: StockAllocator  // overrides how sales pick lots
   onSaleCompleted?(ctx: ModuleContext, saleId: number): void   // runs inside the sale transaction

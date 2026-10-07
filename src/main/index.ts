@@ -1,6 +1,20 @@
 import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'path'
-import { registerIpcHandlers } from './ipc/register'
+import { registerIpcHandlers, setMigrationStatus } from './ipc/register'
+import { getDb, closeDb } from './db/connection'
+import { runMigrations } from './db/migrate'
+
+function initDatabase(): void {
+  try {
+    const db = getDb()
+    runMigrations(db)
+    setMigrationStatus(true, null)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Database initialization failed'
+    console.error('Fatal: Failed to apply database migrations:', error)
+    setMigrationStatus(false, message)
+  }
+}
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -36,6 +50,7 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  initDatabase()
   registerIpcHandlers()
   createWindow()
 
@@ -47,6 +62,7 @@ app.whenReady().then(() => {
 })
 
 app.on('window-all-closed', () => {
+  closeDb()
   if (process.platform !== 'darwin') {
     app.quit()
   }

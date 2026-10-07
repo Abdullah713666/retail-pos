@@ -9,6 +9,7 @@ import { CashScreen } from '../screens/CashScreen'
 import { ReportsScreen } from '../screens/ReportsScreen'
 import { SettingsScreen } from '../screens/SettingsScreen'
 import { SetupScreen } from '../screens/SetupScreen'
+import { MigrationErrorScreen } from '../screens/MigrationErrorScreen'
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -23,6 +24,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="settings" element={<SettingsScreen />} />
         <Route path="setup" element={<SetupScreen />} />
       </Route>
+      <Route path="/migration-error" element={<MigrationErrorScreen />} />
     </Routes>
   )
 }

@@ -58,3 +58,39 @@ Newest entry at the top. Gemini adds a **Build** entry after each milestone; Cla
 - Verdict: **approved**. All 5 fixes verified (Electron 44, better-sqlite3 13, placeholder tests gone, dynamic version, manual workflow trigger). Typecheck, lint, build and dev launch OK.
 - Note: tsc recreates `*.tsbuildinfo` on typecheck; they are git-ignored now, that's fine.
 - Next: M1.
+
+### [Build] M1 — Database + shared basics — 2026-10-08
+- Summary: Implemented shared money helpers with integer paisa & half-up rounding, Result type with zod IPC validation helper, SQLite connection with strict pragmas (WAL, synchronous FULL, foreign_keys ON, busy_timeout 5000), 001_core.sql schema with all tables & indexes, migration runner, in-memory test DB helper, and migration error screen.
+- Files: src/shared/money.ts, src/shared/money.test.ts, src/shared/result.ts, src/shared/result.test.ts, src/shared/ipc-contract.ts, src/main/ipc/handle.ts, src/main/ipc/register.ts, src/main/db/connection.ts, src/main/db/migrate.ts, src/main/db/migrate.test.ts, src/main/db/test-helper.ts, src/main/db/migrations/001_core.sql, src/main/index.ts, src/renderer/src/screens/MigrationErrorScreen.tsx, src/renderer/src/app/App.tsx, src/renderer/src/app/routes.tsx, src/renderer/src/i18n/en.json, src/renderer/src/i18n/ur.json
+- Checks: typecheck ✅ lint ✅ tests ✅ (25 tests)
+- Manual test steps:
+  1. Run `npm run dev` from project root.
+  2. Verify `shop.db`, `shop.db-wal`, and `shop.db-shm` are created in `~/.config/retail-pos/data/` (or userData path).
+  3. Verify all 16 business tables and `schema_migrations` table exist in `shop.db` with `001_core` recorded.
+  4. Verify the application loads normally without showing any database error screen.
+  5. To verify migration error screen, pass an invalid DB path or cause a migration error and observe the user-friendly error screen displays with retry option.
+- Open questions / deviations:
+  - None.
+
+### [Review] M1 — 2026-10-08
+- Verdict: **fixes needed**. Good work overall: pragmas, transactions per migration, schema with CHECKs/FKs, Result + zod IPC helper, 25 real tests passing.
+- Fixes:
+  1. **Dates must be local time, not UTC.** `migrate.ts` uses `toISOString()` (UTC). Pakistan is UTC+5, so a sale at 8 PM would be stored as the next day and break daily reports. Create `src/shared/dates.ts` with `nowLocal()` → `'YYYY-MM-DD HH:mm:ss'` and `todayLocal()` → `'YYYY-MM-DD'` built from local `Date` getters (no `toISOString`). Add tests (use `vi.setSystemTime`). Use `nowLocal()` in `migrate.ts` and everywhere a timestamp is written from now on.
+  2. **Held bills must not use invoice numbers.** In `001_core.sql` change `sales.invoice_no` to `TEXT UNIQUE` (nullable). The invoice number is assigned only when a sale is completed (M7). Edit `001_core.sql` directly (nothing released yet) and delete your local dev `shop.db*` files.
+  3. **Make `toPaisa` safe for typed input.** Change it to `toPaisa(input: string | number): number`. For strings: trim, remove commas, accept optional leading `-`, digits, optional `.` with at most 2 decimals; convert by splitting on `.` (no float multiply). For numbers: `Math.round(Number(input.toFixed(2)) * 100)`. Throw an `Error('Invalid amount')` for empty/NaN/more than 2 decimals. Tests: `"1,234.50"`→123450, `"0.1"`→10, `1.005`→101, `"12.345"` throws, `"abc"` throws, `"-5"`→-500.
+  4. **Remove `loadMigrationsFromDir`** from `migrate.ts` (and its tests). SQL files are not shipped in the installer, so reading them from disk at runtime would fail on Windows. Module migrations will be imported with `?raw` (ARCHITECTURE §5 and §7 updated).
+  5. Add a test: a migration with invalid SQL throws, is **not** recorded in `schema_migrations`, and leaves no partial tables (proves rollback).
+
+### [Build] Fixes for M1 — 2026-10-08
+- Summary: Applied all 5 review fixes from Claude's review of M1. Implemented local date helpers (nowLocal/todayLocal), made sales.invoice_no nullable, made toPaisa safe for string and number inputs with strict validation, removed disk-based loadMigrationsFromDir, and added a test proving migration transaction rollback.
+- Fix details:
+  - Fix 1: Created `src/shared/dates.ts` (`nowLocal`, `todayLocal`, `formatLocalDate`, `formatLocalDateTime`) using local `Date` getters (no UTC/toISOString) and added tests in `src/shared/dates.test.ts` with `vi.setSystemTime`. Replaced UTC timestamp generation in `migrate.ts` with `nowLocal()`.
+  - Fix 2: Changed `sales.invoice_no` to `TEXT UNIQUE` (nullable) in `001_core.sql` so held bills can be stored without invoice numbers. Deleted local dev `shop.db*` files. Added test verifying null invoice_no for held sales.
+  - Fix 3: Updated `toPaisa(input: string | number)` in `src/shared/money.ts` to strictly validate strings (trim, remove commas, optional `-`, <=2 decimals, split on `.`) and round numbers half-up to 2 decimals. Throws `Error('Invalid amount')` on empty/NaN/invalid/>2 decimals. Added tests in `src/shared/money.test.ts`.
+  - Fix 4: Removed `loadMigrationsFromDir` and filesystem reading from `src/main/db/migrate.ts` in favor of bundling raw SQL.
+  - Fix 5: Added test in `src/main/db/migrate.test.ts` verifying that a migration with invalid SQL throws, is not recorded in `schema_migrations`, and rolls back previously executed statements without leaving partial tables.
+- Checks: typecheck ✅ lint ✅ tests ✅ (35 tests)
+
+### [Review] M1 fixes — 2026-10-08
+- Verdict: **approved**. All 5 fixes verified; typecheck, lint, 35 tests pass.
+- Next: M2.
