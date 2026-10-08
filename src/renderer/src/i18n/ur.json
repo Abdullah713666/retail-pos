@@ -627,5 +627,9 @@
     "status_done": "مکمل",
     "markOrdered": "آرڈر ہو گیا",
     "markDone": "مکمل"
+  },
+  "theme": {
+    "dark": "ڈارک موڈ (Dark)",
+    "light": "لائٹ موڈ (Light)"
   }
 }

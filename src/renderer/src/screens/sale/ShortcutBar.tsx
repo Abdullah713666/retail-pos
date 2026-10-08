@@ -21,7 +21,7 @@ const KEYS: Array<[string, string]> = [
 export const ShortcutBar: React.FC = () => {
   const { t } = useTranslation()
   return (
-    <Group gap="md" justify="center" wrap="wrap" py={6} style={{ borderTop: '1px solid var(--mantine-color-gray-3)' }}>
+    <Group gap="md" justify="center" wrap="wrap" py={6} style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}>
       {KEYS.map(([k, label]) => (
         <Group gap={4} key={k} wrap="nowrap">
           <Kbd size="sm">{k}</Kbd>

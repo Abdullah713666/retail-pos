@@ -20,7 +20,7 @@ export const MigrationErrorScreen: React.FC<MigrationErrorScreenProps> = ({ erro
   }
 
   return (
-    <Center style={{ minHeight: '100vh', backgroundColor: 'var(--mantine-color-gray-1)' }}>
+    <Center style={{ minHeight: '100vh', backgroundColor: 'var(--mantine-color-default-hover)' }}>
       <Container size="sm">
         <Paper withBorder shadow="md" p="xl" radius="md">
           <Stack align="center" gap="md">

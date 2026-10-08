@@ -25,4 +25,13 @@
   .no-print {
     display: none !important;
   }
+  /* Always print black on white, even when the app is in dark mode. */
+  html,
+  body,
+  .print-area,
+  .print-area * {
+    background: #fff !important;
+    color: #000 !important;
+    border-color: #000 !important;
+  }
 }

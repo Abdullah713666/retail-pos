@@ -627,5 +627,9 @@
     "status_done": "Done",
     "markOrdered": "Mark ordered",
     "markDone": "Done"
+  },
+  "theme": {
+    "dark": "Dark mode",
+    "light": "Light mode"
   }
 }

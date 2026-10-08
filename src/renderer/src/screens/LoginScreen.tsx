@@ -177,9 +177,9 @@ export const LoginScreen: React.FC = () => {
                     borderRadius: 8,
                     border: isSelected
                       ? '2px solid var(--mantine-color-blue-6)'
-                      : '1px solid var(--mantine-color-gray-3)',
+                      : '1px solid var(--mantine-color-default-border)',
                     backgroundColor: isSelected
-                      ? 'var(--mantine-color-blue-0)'
+                      ? 'var(--mantine-color-blue-light)'
                       : 'transparent',
                     display: 'flex',
                     alignItems: 'center',
@@ -214,9 +214,9 @@ export const LoginScreen: React.FC = () => {
                 width: '100%',
                 padding: '12px 16px',
                 textAlign: 'center',
-                backgroundColor: 'var(--mantine-color-gray-1)',
+                backgroundColor: 'var(--mantine-color-default-hover)',
                 borderRadius: 8,
-                border: '1px solid var(--mantine-color-gray-3)',
+                border: '1px solid var(--mantine-color-default-border)',
                 minHeight: 52,
                 display: 'flex',
                 alignItems: 'center',

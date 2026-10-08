@@ -16,6 +16,7 @@ import { useLocation, useNavigate, Outlet } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useModules } from '../modules'
 import { useAuth } from '../context/AuthContext'
+import { ColorSchemeToggle } from '../components/ColorSchemeToggle'
 
 export const AppLayout: React.FC = () => {
   const { t } = useTranslation()
@@ -87,10 +88,12 @@ export const AppLayout: React.FC = () => {
     <AppShell navbar={{ width: 220, breakpoint: 'sm' }} padding="md">
       <AppShell.Navbar p="xs" style={{ display: 'flex', flexDirection: 'column' }}>
         <Group
+          justify="space-between"
+          wrap="nowrap"
           mb="md"
           px="xs"
           py="xs"
-          style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}
+          style={{ borderBottom: '1px solid var(--mantine-color-default-border)' }}
         >
           <div>
             <Title order={4} c="blue">
@@ -102,6 +105,7 @@ export const AppLayout: React.FC = () => {
               </Text>
             )}
           </div>
+          <ColorSchemeToggle />
         </Group>
 
         <Stack gap="xs" style={{ flex: 1, overflowY: 'auto' }}>
@@ -122,7 +126,7 @@ export const AppLayout: React.FC = () => {
         </Stack>
 
         {user && (
-          <Box pt="xs" style={{ borderTop: '1px solid var(--mantine-color-gray-3)' }}>
+          <Box pt="xs" style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}>
             <Group justify="space-between" mb="xs" px="xs">
               <Group gap="xs">
                 <IconUser size={16} />
