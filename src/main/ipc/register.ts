@@ -25,6 +25,7 @@ import {
   checkPermission
 } from '../core/auth/service'
 import { registerItemsIpc } from '../core/items/ipc'
+import { registerPurchasesIpc } from '../core/purchases/ipc'
 import { registerPartiesIpc } from '../core/parties/ipc'
 import { registerLedgerIpc } from '../core/ledger/ipc'
 
@@ -180,4 +181,7 @@ export function registerIpcHandlers(): void {
   // Parties & Ledger (khata)
   registerPartiesIpc()
   registerLedgerIpc()
+
+  // Purchases (stock in)
+  registerPurchasesIpc()
 }

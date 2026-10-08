@@ -11,7 +11,10 @@ import type {
   CreatePartyInput,
   UpdatePartyInput,
   StatementInput,
-  RecordPaymentInput
+  RecordPaymentInput,
+  CreatePurchaseInput,
+  PurchaseFilter,
+  PurchaseReturnInput
 } from '../shared/types'
 
 const api: IpcApi = {
@@ -73,6 +76,12 @@ const api: IpcApi = {
   ledger: {
     statement: (input: StatementInput) => ipcRenderer.invoke('ledger:statement', input),
     recordPayment: (input: RecordPaymentInput) => ipcRenderer.invoke('ledger:recordPayment', input)
+  },
+  purchases: {
+    list: (filter: PurchaseFilter) => ipcRenderer.invoke('purchases:list', filter),
+    get: (id: number) => ipcRenderer.invoke('purchases:get', id),
+    create: (input: CreatePurchaseInput) => ipcRenderer.invoke('purchases:create', input),
+    return: (input: PurchaseReturnInput) => ipcRenderer.invoke('purchases:return', input)
   }
 }
 

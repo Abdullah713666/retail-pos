@@ -21,7 +21,13 @@ import type {
   Statement,
   StatementInput,
   RecordPaymentInput,
-  LedgerEntry
+  LedgerEntry,
+  CreatePurchaseInput,
+  PurchaseDetail,
+  PurchaseFilter,
+  PurchaseListResult,
+  PurchaseReturnInput,
+  PurchaseReturnResult
 } from './types'
 
 export interface MigrationStatus {
@@ -88,5 +94,11 @@ export interface IpcApi {
   ledger: {
     statement: (input: StatementInput) => Promise<Result<Statement>>
     recordPayment: (input: RecordPaymentInput) => Promise<Result<LedgerEntry>>
+  }
+  purchases: {
+    list: (filter: PurchaseFilter) => Promise<Result<PurchaseListResult>>
+    get: (id: number) => Promise<Result<PurchaseDetail>>
+    create: (input: CreatePurchaseInput) => Promise<Result<PurchaseDetail>>
+    return: (input: PurchaseReturnInput) => Promise<Result<PurchaseReturnResult>>
   }
 }

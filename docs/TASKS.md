@@ -50,9 +50,9 @@ Mark items `[x]` when done. Each milestone ends with: typecheck + lint + tests p
 - **Done when:** ledger tests pass and balances match statements.
 
 ## M6 — Purchases (stock in)
-- [ ] Purchase entry: supplier, bill no, lines (item, unit, qty, cost, lot no + expiry when item tracks lots)
-- [ ] Posts stock movements + lots + supplier ledger (credit purchase) in one transaction
-- [ ] Purchase return
+- [x] Purchase entry: supplier, bill no, lines (item, unit, qty, cost, lot no + expiry when item tracks lots)
+- [x] Posts stock movements + lots + supplier ledger (credit purchase) in one transaction
+- [x] Purchase return
 - **Done when:** stock and supplier balance update correctly (tests).
 
 ## M7 — Sale screen (the most important screen)

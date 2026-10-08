@@ -244,3 +244,31 @@ Newest entry at the top. Gemini adds a **Build** entry after each milestone; Cla
 
 ### [Review] M5 — 2026-10-08
 - Verdict: **approved**. Single ledger entry point (`postEntry`, no own transaction), clear sign convention (debit − credit, + = party owes shop), opening balance in same transaction, statement with carried-in balance. Typecheck + 119 tests pass. Decisions accepted: overpayment allowed (advance); credit limit enforced in M7.
+
+
+### [Build] M6 — Purchases — 2026-10-08
+- Summary: Purchase entry (supplier, bill no, date, lines with base/pack unit, qty, cost, batch no + expiry for lot items), purchase list and detail with partial/multiple returns. New reusable stock service (`postMovement`, `findOrCreateLot`, `getItemStock`, `getLotStock`) that M7 sales will use. Everything for a purchase (purchase, lines, lots, movements, stock_cache, item cost, supplier ledger, audit) runs in ONE `db.transaction()`; any bad line rolls back the whole bill (`TxAbort` in `purchases/tx.ts` turns a thrown abort into an `err` Result). Main recomputes all totals; the renderer only sends itemId, unit name, qty, unit cost, lot, expiry, discount, paid.
+- How it posts:
+  - Stock: one `purchase` movement per line in BASE units (qty × pack factor), `items.stock_cache` updated in the same call. Lot items: lot found by (item, lot_no) or created (cost per base unit); same lot no with a different expiry -> `LOT_EXPIRY_MISMATCH`. Lot stock = SUM(movements) per lot (no qty column on `stock_lots`).
+  - Ledger (via `postEntry` only): `purchase` CREDIT for the bill total; if paid now > 0, a `payment_out` DEBIT for the paid amount (cash purchase nets to 0). Purchase date is used as the ledger entry date.
+  - Money: line total = qty × unit cost (paisa, exact). Cost per base unit = round half-up(unit cost / factor); stored on the lot and written to `items.cost_price` (latest cost wins; ARCHITECTURE is silent, so I did this and note it here).
+  - Return: `purchase_returns` + `purchase_return_lines`; per line qty (base units) <= purchased - already returned; negative `purchase_return` movements on the same lot (`postMovement` refuses item or lot going below zero); ledger `return` DEBIT. Refund = qty share rounded half-up; the final return of a line refunds the exact remainder so partial returns never exceed the bill.
+- Files: src/main/db/migrations/002_purchases.sql, src/main/db/migrate.ts, src/main/core/stock/service.ts (+test), src/main/core/purchases/{service,returns,queries,tx,ipc,service.test}.ts, src/shared/types/purchases.ts, src/shared/types/index.ts, src/shared/ipc-contract.ts, src/preload/index.ts, src/main/ipc/register.ts, src/renderer/src/screens/PurchasesScreen.tsx, src/renderer/src/screens/purchases/{PurchaseFormModal,PurchaseItemPicker,PurchaseDetailModal}.tsx, src/renderer/src/screens/items/ItemFormModal.tsx, src/renderer/src/i18n/{en,ur}.json, docs/TASKS.md, docs/REVIEW_LOG.md
+- Checks: typecheck ✅ lint ✅ tests ✅ (132 tests, 13 new). Not run by hand (`npm run dev` needs a display); UI is typechecked and linted only.
+- Manual test steps:
+  1. `npm run dev`, log in as Owner. Items: add "Panadol" with a Box pack (factor 100) and tick "Track batches"; the opening stock field disappears. Add a normal item "Pen" with opening stock 5.
+  2. Parties > Suppliers: add "Hamid Traders". Purchases: press Insert. Pick Hamid, bill no 101, search "pana" (or scan), Enter. Set unit Box, qty 2, cost 500, batch B1, expiry 2027-12-31. Add Pen, qty 10, cost 20. Check totals, Ctrl+Enter.
+  3. Items: Panadol stock 200, Pen 15, cost prices updated. Parties > Suppliers: Hamid shows the bill total to pay. Statement shows the purchase row.
+  4. New purchase with "Pay full": supplier balance does not change. With a part payment: only the rest is owed.
+  5. Open a purchase, "Return goods", enter 50 for Panadol, confirm: stock 150, supplier balance drops. Try returning more than purchased: refused.
+  6. Log in as Cashier: Purchases calls are refused.
+- Open questions / deviations:
+  - New migration `002_purchases.sql` (not in the original schema): adds `purchases.purchase_date` and the `purchase_returns` / `purchase_return_lines` tables. Needed to track returned qty per line.
+  - Items with `track_stock = 0` are rejected on purchases (`ITEM_NOT_STOCKED`).
+  - Returns are entered in base units, not pack units.
+  - Cash paid/refunded is not written to the cash drawer yet (M9). A refund received from the supplier is not recorded as cash; the return only reduces the supplier balance (it can go positive = supplier owes us).
+  - Future purchase dates are rejected; expired expiry dates are allowed.
+  - No void/edit of a purchase (use a return). `stock/ipc.ts` is still the empty placeholder (no renderer need yet).
+
+### [Review] M6 — 2026-10-08
+- Verdict: **approved**. Stock service is the single writer of movements + stock_cache, no-negative guard on item and lot, `must()/runAtomic` rolls back the whole bill on any bad line, ledger via `postEntry`, migration 002 append-only. Typecheck + 132 tests pass. Accepted: cost_price updated to latest cost; returns in base units. Follow-up for M7: move `purchases/tx.ts` to `src/main/db/tx.ts` and reuse it.

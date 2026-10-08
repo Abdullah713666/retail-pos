@@ -5,6 +5,7 @@ import {
   Select,
   NumberInput,
   Switch,
+  Checkbox,
   Button,
   Group,
   Stack,
@@ -58,6 +59,7 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
   const [openingStock, setOpeningStock] = useState<number | ''>('')
   const [reorderLevel, setReorderLevel] = useState<number | ''>(0)
   const [trackStock, setTrackStock] = useState(true)
+  const [trackLots, setTrackLots] = useState(false)
   const [units, setUnits] = useState<UnitDraft[]>([])
   const [loading, setLoading] = useState(false)
 
@@ -73,6 +75,7 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
       setOpeningStock('')
       setReorderLevel(item.reorderLevel)
       setTrackStock(item.trackStock === 1)
+      setTrackLots(item.trackLots === 1)
       setUnits(
         item.units.map((u) => ({
           name: u.name,
@@ -92,6 +95,7 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
       setOpeningStock('')
       setReorderLevel(0)
       setTrackStock(true)
+      setTrackLots(false)
       setUnits([])
     }
   }, [item, opened])
@@ -167,6 +171,7 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
           costPrice: costPaisa,
           reorderLevel: typeof reorderLevel === 'number' ? reorderLevel : 0,
           trackStock,
+          trackLots,
           units: formattedUnits
         })
         if (res.ok) {
@@ -186,9 +191,12 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
           costPrice: costPaisa,
           reorderLevel: typeof reorderLevel === 'number' ? reorderLevel : 0,
           trackStock,
+          trackLots,
           units: formattedUnits,
           openingStock:
-            typeof openingStock === 'number' && openingStock > 0 ? { qty: openingStock } : undefined
+            !trackLots && typeof openingStock === 'number' && openingStock > 0
+              ? { qty: openingStock }
+              : undefined
         })
         if (res.ok) {
           notifications.show({ color: 'green', message: t('items.itemSaved') })
@@ -288,7 +296,7 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
             value={costPrice}
             onChange={(e) => setCostPrice(e.currentTarget.value)}
           />
-          {!item && (
+          {!item && !trackLots && (
             <NumberInput
               label={t('items.openingStock')}
               placeholder="0"
@@ -309,6 +317,14 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
               label={t('items.trackStock')}
               checked={trackStock}
               onChange={(e) => setTrackStock(e.currentTarget.checked)}
+            />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', marginTop: 22 }}>
+            <Checkbox
+              label={t('items.trackLots')}
+              description={t('items.trackLotsHelp')}
+              checked={trackLots}
+              onChange={(e) => setTrackLots(e.currentTarget.checked)}
             />
           </div>
         </SimpleGrid>
