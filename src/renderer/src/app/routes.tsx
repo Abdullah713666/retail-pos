@@ -7,6 +7,7 @@ import { PartiesScreen } from '../screens/PartiesScreen'
 import { PurchasesScreen } from '../screens/PurchasesScreen'
 import { CashScreen } from '../screens/CashScreen'
 import { ReportsScreen } from '../screens/ReportsScreen'
+import { DashboardScreen } from '../screens/DashboardScreen'
 import { SettingsScreen } from '../screens/SettingsScreen'
 import { SetupScreen } from '../screens/SetupScreen'
 import { LoginScreen } from '../screens/LoginScreen'
@@ -60,6 +61,7 @@ export const AppRoutes: React.FC = () => {
         }
       >
         <Route index element={<SaleScreen />} />
+        <Route path="dashboard" element={<DashboardScreen />} />
         <Route path="items" element={<ItemsScreen />} />
         <Route path="parties" element={<PartiesScreen />} />
         <Route path="purchases" element={<PurchasesScreen />} />

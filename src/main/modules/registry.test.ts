@@ -1,4 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+
+// Pharmacy registers its IPC handlers on enable; there is no Electron in tests.
+vi.mock('electron', () => ({ ipcMain: { handle: vi.fn() } }))
 import { createTestDb } from '../db/test-helper'
 import {
   getEnabledModuleIds,
@@ -223,13 +226,16 @@ describe('Module registry', () => {
   describe('getStockAllocator', () => {
     it('returns undefined if no active module provides an allocator', () => {
       const db = createTestDb()
+      expect(getStockAllocator()).toBeUndefined()
+      expect(getStockAllocator([{ id: 'plain', migrations: [], registerIpc: () => {} }])).toBeUndefined()
+      expect(db).toBeTruthy()
+    })
+
+    it('pharmacy provides the FEFO allocator once enabled', () => {
+      const db = createTestDb()
       setEnabledModuleIds(db, ['pharmacy'])
       initModules({ db })
-
-      // Call without parameters - uses activeModules from registry
-      expect(getStockAllocator()).toBeUndefined()
-      // Call with explicit array
-      expect(getStockAllocator([AVAILABLE_MODULES.pharmacy])).toBeUndefined()
+      expect(getStockAllocator()).toBe(AVAILABLE_MODULES.pharmacy.stockAllocator)
     })
 
     it('returns allocator if an active module provides one', () => {

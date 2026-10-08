@@ -17,7 +17,11 @@ export interface UiModule {
   id: string
   routes: ModuleRoute[]
   menu: ModuleMenuItem[]
-  itemFormFields?: React.ComponentType<{ itemId?: number }>
-  saleLineInfo?: React.ComponentType<{ line: unknown }>
+  /** Extra block on the item form. `onChange` hands the block's data to the form, saved with the item in one transaction. */
+  itemFormFields?: React.ComponentType<{ itemId?: number; onChange: (data: Record<string, unknown>) => void }>
+  /** New items start with "track batches" ticked (pharmacy). */
+  defaultTrackLots?: boolean
+  /** Small info under a sale line (batch + expiry). */
+  saleLineInfo?: React.ComponentType<{ itemId: number; qtyBase: number }>
   dashboardWidgets?: React.ComponentType[]
 }

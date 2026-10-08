@@ -82,12 +82,12 @@ Mark items `[x]` when done. Each milestone ends with: typecheck + lint + tests p
 - [x] Auto backup (§10), backup now, extra folder, restore (owner only)
 
 ## M12 — Pharmacy module (full)
-- [ ] `pharmacy_item_info` fields on item form; lots + expiry required on purchase
-- [ ] FEFO allocator; block expired lots (owner override + audit)
-- [ ] Sale line shows batch + expiry
-- [ ] Expiry console (30/60/90 days, by supplier, printable + copy as WhatsApp text)
-- [ ] Want-book (auto + manual), grouped by supplier, copy as WhatsApp text
-- [ ] Dashboard widget: near-expiry count, want-book count
+- [x] `pharmacy_item_info` fields on item form; lots + expiry required on purchase
+- [x] FEFO allocator; block expired lots (owner override + audit)
+- [x] Sale line shows batch + expiry
+- [x] Expiry console (30/60/90 days, by supplier, printable + copy as WhatsApp text)
+- [x] Want-book (auto + manual), grouped by supplier, copy as WhatsApp text
+- [x] Dashboard widget: near-expiry count, want-book count
 
 ## M13 — Windows release
 - [ ] GitHub Actions workflow building NSIS installer on windows-latest

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { nowLocal, todayLocal, formatLocalDate, formatLocalDateTime } from './dates'
+import { nowLocal, todayLocal, formatLocalDate, formatLocalDateTime, addDaysLocal } from './dates'
 
 describe('dates helpers', () => {
   beforeEach(() => {
@@ -38,5 +38,14 @@ describe('dates helpers', () => {
     const d = new Date(2025, 0, 1, 0, 0, 0)
     expect(formatLocalDate(d)).toBe('2025-01-01')
     expect(formatLocalDateTime(d)).toBe('2025-01-01 00:00:00')
+  })
+})
+
+describe('addDaysLocal', () => {
+  it('adds and subtracts days across month and year ends', () => {
+    expect(addDaysLocal('2026-10-08', 30)).toBe('2026-11-07')
+    expect(addDaysLocal('2026-12-31', 1)).toBe('2027-01-01')
+    expect(addDaysLocal('2026-03-01', -1)).toBe('2026-02-28')
+    expect(addDaysLocal('2028-02-28', 1)).toBe('2028-02-29')
   })
 })

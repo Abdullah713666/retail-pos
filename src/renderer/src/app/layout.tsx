@@ -8,6 +8,7 @@ import {
   IconCash,
   IconReportAnalytics,
   IconSettings,
+  IconLayoutDashboard,
   IconLogout,
   IconUser
 } from '@tabler/icons-react'
@@ -32,6 +33,10 @@ export const AppLayout: React.FC = () => {
 
   const coreNavItems = [
     { label: t('nav.sale'), path: '/', icon: <IconShoppingCart size={20} stroke={1.5} /> },
+    // Only worth a menu entry when an enabled module adds widgets to it.
+    ...(activeUiModules.some((m) => m.dashboardWidgets?.length)
+      ? [{ label: t('nav.dashboard'), path: '/dashboard', icon: <IconLayoutDashboard size={20} stroke={1.5} /> }]
+      : []),
     { label: t('nav.items'), path: '/items', icon: <IconPackage size={20} stroke={1.5} /> },
     { label: t('nav.parties'), path: '/parties', icon: <IconUsers size={20} stroke={1.5} /> },
     { label: t('nav.purchases'), path: '/purchases', icon: <IconTruckDelivery size={20} stroke={1.5} /> },

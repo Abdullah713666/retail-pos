@@ -56,7 +56,15 @@ import type {
   SaveCsvResult,
   BackupStatus,
   BackupNowResult,
-  RestoreInput
+  RestoreInput,
+  PharmacyItemInfo,
+  AllocationPreview,
+  ExpiryFilter,
+  ExpiryRow,
+  WantBookEntry,
+  WantBookAddInput,
+  WantStatus,
+  PharmacyDashboard
 } from './types'
 
 export interface MigrationStatus {
@@ -74,6 +82,15 @@ export interface IpcApi {
   }
   setup: {
     complete: (input: SetupCompleteInput) => Promise<Result<User>>
+  }
+  pharmacy: {
+    getItemInfo: (itemId: number) => Promise<Result<PharmacyItemInfo | null>>
+    previewAllocation: (input: { itemId: number; qtyBase: number }) => Promise<Result<AllocationPreview>>
+    listExpiry: (filter: ExpiryFilter) => Promise<Result<ExpiryRow[]>>
+    wantBookList: (status: WantStatus | 'active') => Promise<Result<WantBookEntry[]>>
+    wantBookAdd: (input: WantBookAddInput) => Promise<Result<WantBookEntry>>
+    wantBookSetStatus: (input: { id: number; status: WantStatus }) => Promise<Result<WantBookEntry>>
+    dashboard: () => Promise<Result<PharmacyDashboard>>
   }
   modules: {
     getEnabled: () => Promise<Result<string[]>>

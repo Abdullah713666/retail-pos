@@ -111,6 +111,8 @@ export interface CreateItemInput {
   openingStock?: {
     qty: number // in base units
   }
+  /** Extra fields owned by an enabled module (e.g. pharmacy), saved in the same transaction. */
+  moduleData?: Record<string, unknown>
 }
 
 export interface UpdateItemInput {
@@ -126,6 +128,7 @@ export interface UpdateItemInput {
   trackStock?: boolean
   trackLots?: boolean
   units?: CreateItemUnitInput[]
+  moduleData?: Record<string, unknown>
 }
 
 export interface ItemFilter {
@@ -184,3 +187,4 @@ export * from './sales'
 export * from './cash'
 export * from './printing'
 export * from './reports'
+export * from './pharmacy'

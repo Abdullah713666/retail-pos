@@ -30,6 +30,7 @@ import { nowLocal } from '@shared/dates'
 import { formatPKR } from '@shared/money'
 import type { CompleteSaleInput, CompleteSaleResult, Sale, SaleDraftInput } from '@shared/types'
 import { abort, must, runAtomic } from '../../db/tx'
+import { requireApproval } from './approval'
 import { logAudit } from '../audit/service'
 import { postEntry, getBalance } from '../ledger/service'
 import { postMovement } from '../stock/service'
@@ -37,7 +38,7 @@ import { defaultAllocator } from '../stock/allocator'
 import { getSetting, setSetting } from '../settings/service'
 import { getOpenShiftId } from '../cash/service'
 import { getActiveModules, getStockAllocator } from '../../modules/registry'
-import type { MainModule, StockAllocator } from '../../modules/types'
+import type { AllocateContext, MainModule, StockAllocator } from '../../modules/types'
 import { priceDraft, type PricedLine } from './pricing'
 import { getSale } from './queries'
 
@@ -140,7 +141,8 @@ function takeStock(
   l: PricedLine,
   allocator: StockAllocator,
   allowNegative: boolean,
-  userId: number
+  userId: number,
+  overrideBy: number | null
 ): void {
   const setCost = db.prepare('UPDATE sale_lines SET cost_total = ? WHERE id = ?')
   if (!l.item.track_stock) {
@@ -149,7 +151,7 @@ function takeStock(
     setCost.run(l.qtyBase * c.cost_price, lineId)
     return
   }
-  const chunks = allocator.allocate(db, l.item.id, l.qtyBase).filter((c) => c.qtyBase > 0)
+  const chunks = allocator.allocate(db, l.item.id, l.qtyBase, { saleId, userId, overrideBy } satisfies AllocateContext).filter((c) => c.qtyBase > 0)
   let got = 0
   for (const c of chunks) {
     if (!Number.isSafeInteger(c.qtyBase)) abort('ALLOCATION_FAILED', `${l.item.name}: stock allocation failed`)
@@ -243,6 +245,8 @@ export function completeSale(
     // Selling needs an open cash shift so every rupee in the drawer belongs to one.
     const shiftId = getOpenShiftId(db)
     if (shiftId == null) abort('NO_OPEN_SHIFT', 'Open a cash shift first (Cash screen), then sell.')
+    // Owner PIN given after a module blocked a line (e.g. expired batch); only the owner may override.
+    const overrideBy = input.overrideApproval ? requireApproval(db, input.overrideApproval, ['owner']) : null
     const partyId = checkParty(db, input.partyId)
     const priced = priceDraft(db, input)
     const total = priced.totals.total
@@ -284,7 +288,7 @@ export function completeSale(
     )
 
     const allowNegative = getSetting(db, 'allow_negative_stock') === '1'
-    for (const l of priced.lines) takeStock(db, saleId, l, allocator, allowNegative, userId)
+    for (const l of priced.lines) takeStock(db, saleId, l, allocator, allowNegative, userId, overrideBy)
 
     if (paidCredit > 0 && partyId != null) {
       must(

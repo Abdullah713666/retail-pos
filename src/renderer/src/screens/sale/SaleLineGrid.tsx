@@ -5,10 +5,12 @@ import { formatPKR } from '@shared/money'
 import { lineAmounts } from '@shared/sale-calc'
 import type { SaleCart } from './useSaleCart'
 import { lineFactor, lineUnitPrice } from './useSaleCart'
+import { useModules } from '../../modules'
 
 export const SaleLineGrid: React.FC<{ cart: SaleCart }> = ({ cart }) => {
   const { t } = useTranslation()
   const { lines, selected } = cart.cart
+  const { activeUiModules } = useModules()
   const selRef = useRef<HTMLTableRowElement>(null)
 
   useEffect(() => {
@@ -52,6 +54,10 @@ export const SaleLineGrid: React.FC<{ cart: SaleCart }> = ({ cart }) => {
               <Table.Td>{i + 1}</Table.Td>
               <Table.Td>
                 <Text fw={600} size="md">{l.item.name}</Text>
+                {activeUiModules.map((mod) => {
+                  const Info = mod.saleLineInfo
+                  return Info ? <Info key={mod.id} itemId={l.item.id} qtyBase={l.qty * lineFactor(l)} /> : null
+                })}
                 {short && (
                   <Text size="xs" c="red">
                     {t('sale.lowStock', { n: l.item.stockCache })}

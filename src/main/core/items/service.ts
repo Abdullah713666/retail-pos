@@ -11,6 +11,9 @@ import type {
   BarcodeLookupResult
 } from '@shared/types'
 import { logAudit } from '../audit/service'
+import { runAtomic } from '../../db/tx'
+import { getActiveModules } from '../../modules/registry'
+import type { MainModule } from '../../modules/types'
 import { checkBarcodes } from './barcodes'
 
 export { listCategories, createCategory } from './categories'
@@ -83,10 +86,27 @@ export function getItemById(db: Database.Database, id: number): Item | null {
   return mapItemRow(row, getItemUnits(db, id))
 }
 
+export interface ItemDeps {
+  modules?: MainModule[]
+}
+
+/** Hands the module's own form data to every active module (inside the item transaction). */
+function runItemHooks(
+  db: Database.Database,
+  itemId: number,
+  data: Record<string, unknown> | undefined,
+  userId: number | null,
+  deps: ItemDeps
+): void {
+  if (!data) return
+  for (const mod of deps.modules ?? getActiveModules()) mod.onItemSaved?.({ db }, itemId, data, userId)
+}
+
 export function createItem(
   db: Database.Database,
   input: CreateItemInput,
-  userId?: number | null
+  userId?: number | null,
+  deps: ItemDeps = {}
 ): Result<Item> {
   const name = input.name.trim()
   if (!name) {
@@ -159,6 +179,8 @@ export function createItem(
       `).run(itemId, openingQty, itemId, userId ?? null, now)
     }
 
+    runItemHooks(db, itemId, input.moduleData, userId ?? null, deps)
+
     logAudit(db, {
       userId,
       action: 'item_created',
@@ -170,13 +192,14 @@ export function createItem(
     return getItemById(db, itemId)!
   })
 
-  return ok(runTx())
+  return runAtomic(() => runTx())
 }
 
 export function updateItem(
   db: Database.Database,
   input: UpdateItemInput,
-  userId?: number | null
+  userId?: number | null,
+  deps: ItemDeps = {}
 ): Result<Item> {
   const current = getItemById(db, input.id)
   if (!current) return err({ code: 'NOT_FOUND', message: 'Item not found' })
@@ -226,6 +249,8 @@ export function updateItem(
       }
     }
 
+    runItemHooks(db, input.id, input.moduleData, userId ?? null, deps)
+
     logAudit(db, {
       userId,
       action: 'item_updated',
@@ -237,7 +262,7 @@ export function updateItem(
     return getItemById(db, input.id)!
   })
 
-  return ok(runTx())
+  return runAtomic(() => runTx())
 }
 
 export function deactivateItem(

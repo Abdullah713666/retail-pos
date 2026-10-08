@@ -9,7 +9,7 @@ export interface ApprovalValue {
 }
 
 /** Pick a manager/owner and type their PIN (void, or a cashier's return). */
-export const ApprovalFields: React.FC<{ value: ApprovalValue; onChange: (v: ApprovalValue) => void }> = ({ value, onChange }) => {
+export const ApprovalFields: React.FC<{ value: ApprovalValue; onChange: (v: ApprovalValue) => void; ownerOnly?: boolean }> = ({ value, onChange, ownerOnly }) => {
   const { t } = useTranslation()
   const { user } = useAuth()
   const [approvers, setApprovers] = useState<Array<{ value: string; label: string }>>([])
@@ -17,7 +17,7 @@ export const ApprovalFields: React.FC<{ value: ApprovalValue; onChange: (v: Appr
   useEffect(() => {
     void window.api.users.list().then((r) => {
       if (!r.ok) return
-      const list = r.data.filter((u) => u.active === 1 && (u.role === 'manager' || u.role === 'owner'))
+      const list = r.data.filter((u) => u.active === 1 && (u.role === 'owner' || (!ownerOnly && u.role === 'manager')))
       setApprovers(list.map((u) => ({ value: String(u.id), label: `${u.name} (${t(`roles.${u.role}`)})` })))
       if (value.userId === null) {
         const me = list.find((u) => u.id === user?.id) ?? list[0]

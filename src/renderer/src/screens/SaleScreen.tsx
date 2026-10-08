@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Alert, Button, Group, Paper, ScrollArea, Stack, Text } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { useTranslation } from 'react-i18next'
-import type { CompleteSaleResult, Item, Shift } from '@shared/types'
+import type { Approval, CompleteSaleResult, Item, Shift } from '@shared/types'
 import { callApi } from '../lib/api'
 import { getPrintMode, printSaleSafe } from '../lib/print'
 import { ConfirmDialog } from '../components/ConfirmDialog'
@@ -18,6 +18,7 @@ import { UnitDialog } from './sale/UnitDialog'
 import { HeldDialog } from './sale/HeldDialog'
 import { InvoicesDialog } from './sale/InvoicesDialog'
 import { OpenShiftDialog } from './cash/OpenShiftDialog'
+import { OverrideDialog } from './sale/OverrideDialog'
 
 type Dialog = null | 'pay' | 'customer' | 'discount' | 'unit' | 'held' | 'invoices' | 'clear' | 'shift'
 
@@ -31,6 +32,8 @@ export const SaleScreen: React.FC = () => {
   const [busy, setBusy] = useState(false)
   const [shift, setShift] = useState<Shift | null | undefined>(undefined) // undefined = still loading
   const lastSaleId = useRef<number | null>(null)
+  const [overrideMsg, setOverrideMsg] = useState<string | null>(null)
+  const overrideResolve = useRef<((a: Approval | null) => void) | null>(null)
   const backToPay = useRef(false) // F3 pressed inside the payment dialog: come back to it
 
   const refreshHeld = useCallback(async () => {
@@ -98,14 +101,29 @@ export const SaleScreen: React.FC = () => {
   )
 
   const complete = async (paidCash: number, paidCredit: number): Promise<CompleteSaleResult | null> => {
-    const res = await callApi(() => window.api.sales.complete({ ...sale.toDraft(), paidCash, paidCredit }))
-    if (res) {
-      lastSaleId.current = res.sale.id
-      sale.clear()
-      void refreshHeld()
-      // The sale is already saved. Printing is separate and can only ever show a warning toast.
-      if ((await getPrintMode()) === 'auto') void printSaleSafe(res.sale.id, paidCash)
+    const draft = { ...sale.toDraft(), paidCash, paidCredit }
+    let r = await window.api.sales.complete(draft)
+    // A module blocked a line (e.g. expired medicine): the owner may approve with a PIN, then we retry once.
+    if (!r.ok && r.error.code === 'OWNER_OVERRIDE_REQUIRED') {
+      const msg = r.error.message
+      const approval = await new Promise<Approval | null>((resolve) => {
+        overrideResolve.current = resolve
+        setOverrideMsg(msg)
+      })
+      setOverrideMsg(null)
+      if (!approval) return null
+      r = await window.api.sales.complete({ ...draft, overrideApproval: approval })
     }
+    if (!r.ok) {
+      notifications.show({ color: 'red', title: t('common.error'), message: r.error.message })
+      return null
+    }
+    const res = r.data
+    lastSaleId.current = res.sale.id
+    sale.clear()
+    void refreshHeld()
+    // The sale is already saved. Printing is separate and can only ever show a warning toast.
+    if ((await getPrintMode()) === 'auto') void printSaleSafe(res.sale.id, paidCash)
     return res
   }
 
@@ -195,6 +213,11 @@ export const SaleScreen: React.FC = () => {
       </Group>
       <ShortcutBar />
 
+      <OverrideDialog
+        message={overrideMsg}
+        onCancel={() => overrideResolve.current?.(null)}
+        onConfirm={(a) => overrideResolve.current?.(a)}
+      />
       <OpenShiftDialog opened={dialog === 'shift'} onClose={close} onOpened={setShift} />
       <PaymentDialog
         opened={dialog === 'pay'}

@@ -392,3 +392,30 @@ Newest entry at the top. Gemini adds a **Build** entry after each milestone; Cla
 
 ### [Review] M10 + M11 — 2026-10-08
 - Verdict: **approved**. Profit uses cost frozen on the sale line (`cost_total`, migration 005, lot-chunk cost). Voids excluded, returns subtracted. Backups use `db.backup()` → tmp → integrity check → fsync → rename. Restore validates a private copy, takes a safety backup, removes old -wal/-shm, swaps and migrates. Typecheck + 218 tests pass. Owner to test: backup now, restore + relaunch on Windows.
+
+### [Build] M12 — Pharmacy module — 2026-10-08
+- Summary: Everything pharmacy lives in `src/main/modules/pharmacy` (+ `src/renderer/src/modules/pharmacy`); core only got generic hooks, so it still works with the module off (test included). Migration `pharmacy/002_want_book` (append-only).
+- Item form: module block (generic name, manufacturer, strength, form, schedule otc/rx/controlled, rack). The form sends `moduleData: { pharmacy: {...} }`; core calls `MainModule.onItemSaved` INSIDE the create/update transaction, so a bad block saves nothing. New items start with "track batches" ticked (UI default, not forced in the backend). Purchases already require batch no. + expiry for `track_lots` items (core rule, test added).
+- FEFO (`fefo.ts`): earliest expiry first, no-expiry lots last, expired = `expiry_date < todayLocal()` (a batch is sellable ON its expiry day). Expired stock is never used unless the sale was sent with `overrideApproval` = OWNER PIN (managers refused, uses `requireApproval(..., ['owner'])`, same wrong-PIN lockout). Without it the allocator aborts with `OWNER_OVERRIDE_REQUIRED` and the whole sale rolls back; the sale screen shows an owner-PIN dialog and retries once. Each expired chunk used writes an `expired_sale_override` audit row (approver as user, lot, qty, sale id, cashier). Valid stock is used first, expired only for the remainder. If even expired stock cannot cover the line, the normal INSUFFICIENT_STOCK error is returned.
+- Sale line batch + expiry: `Sale.lines[].lots` (batch no, expiry, qty) now comes back from every `getSale`/`completeSale`; plus a preview IPC `pharmacy:previewAllocation` shown under each cart line (red when expired / owner needed).
+- Expiry console: Expired / 30 / 60 / 90 days (cumulative from today), supplier filter (supplier of the purchase that created the batch), Print (`.print-area`), Copy for WhatsApp (`*bold*` supplier headings, one line per batch). Only batches with stock > 0.
+- Want-book: `onSaleCompleted` inside the sale transaction adds an auto entry when an item with stock tracking has `stock_cache <= reorder_level` (reorder 0 = when it hits 0). No new auto entry while the item has an open OR ordered entry. Auto qty = max(2 x reorder level - stock, 1) (my choice; change if you prefer). Supplier = supplier of the item's latest purchase. Manual add (item or free text; adding an already-listed item returns the existing entry). Mark ordered / done (nothing is deleted). Grouped by supplier, Copy for WhatsApp copies the "to order" entries.
+- Dashboard: core had no home screen, so I added a small `/dashboard` screen (menu entry appears only when an enabled module has widgets) and the `UiModule.dashboardWidgets` slot. Pharmacy widget: expiring in 30 days, expired batches, want-book open count (each links to its screen).
+- Files: modules/pharmacy/{index,fefo,info,expiry,wantbook,ipc}.ts + migrations/002_want_book.sql + pharmacy.test.ts (old `services.ts` placeholder removed); core: modules/types.ts, core/items/{service,ipc}.ts, core/sales/{service,queries,approval,ipc}.ts, shared/{dates,ipc-contract}.ts, shared/types/{pharmacy,sales,index}.ts, preload; renderer: modules/pharmacy/*, screens/DashboardScreen.tsx, screens/sale/OverrideDialog.tsx, SaleScreen, SaleLineGrid, ItemFormModal, ApprovalFields, layout, routes, i18n en/ur.
+- Checks: typecheck ✅ lint ✅ tests ✅ (238 tests, 20 new: 19 pharmacy backend, 2 WhatsApp text, 1 date helper, registry test reworked). `npm run build` ✅. NOT clicked through by hand (no interactive session).
+- Manual test steps:
+  1. Settings has pharmacy enabled. Items > Add: fill medicine details, "track batches" ticked; save, reopen: details are back.
+  2. Purchases: buy it with batch + expiry (two batches, different expiry). Sale: the line shows the earlier batch; sell more than that batch: it continues into the next.
+  3. Buy a batch with a past expiry. Sell more than the good stock: owner-PIN dialog appears. Cashier cancels: nothing sold. Owner PIN: sale completes; audit_log has `expired_sale_override`.
+  4. Expiry menu: switch Expired/30/60/90, pick a supplier, Print, Copy for WhatsApp and paste into WhatsApp.
+  5. Set reorder level 5 on an item, sell down to 5: Want-book shows it under its last supplier. Sell again: still one entry. Mark ordered / done, add a manual one, copy for WhatsApp.
+  6. Dashboard menu shows the three counts.
+- Open questions / deviations:
+  - Server does not force `track_lots = 1` on pharmacy items (switching an item with existing stock to batches would strand that stock); it is only the form default. Say if you want it forced for new items.
+  - "Searched item is out of stock" auto-add (ARCHITECTURE) is not in the M12 checklist and was not built.
+  - Dates are full `YYYY-MM-DD` (existing purchase rule); no MM/YYYY entry.
+  - Sale returns/voids that restock do not remove an open want-book entry; staff mark it done.
+  - Test files for mocking: `registry.test.ts` and `settings/service.test.ts` now mock `electron` because enabling pharmacy registers IPC.
+
+### [Review] M12 — 2026-10-08
+- Verdict: **approved**. FEFO inside the module (earliest expiry, null last, expired only with owner PIN + audit per lot), want-book via onSaleCompleted inside the sale transaction with no duplicates, core works with module disabled. Typecheck + 238 tests pass. Accepted: want qty = max(2×reorder − stock, 1); track_lots not forced server-side. Later: "searched item out of stock" auto want-book entry.

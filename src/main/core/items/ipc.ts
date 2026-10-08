@@ -41,7 +41,8 @@ const createItemSchema = z.object({
     .object({
       qty: z.number().int().nonnegative()
     })
-    .optional()
+    .optional(),
+  moduleData: z.record(z.unknown()).optional()
 })
 
 const updateItemSchema = z.object({
@@ -56,7 +57,8 @@ const updateItemSchema = z.object({
   reorderLevel: z.number().int().nonnegative().optional(),
   trackStock: z.boolean().optional(),
   trackLots: z.boolean().optional(),
-  units: z.array(unitSchema).optional()
+  units: z.array(unitSchema).optional(),
+  moduleData: z.record(z.unknown()).optional()
 })
 
 const itemFilterSchema = z.object({

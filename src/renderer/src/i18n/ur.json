@@ -13,7 +13,9 @@
     "setup": "سیٹ اپ (Setup)",
     "expiry": "ایکسپائری (Expiry)",
     "login": "لاگ ان (Login)",
-    "logout": "لاگ آؤٹ (Logout)"
+    "logout": "لاگ آؤٹ (Logout)",
+    "dashboard": "ڈیش بورڈ",
+    "wantBook": "وانٹ بک"
   },
   "roles": {
     "owner": "مالک (Owner)",
@@ -139,6 +141,11 @@
     "expiry": {
       "title": "ایکسپائری کنسول",
       "subtitle": "قریبی میعاد کی دوائیں اور واپسی"
+    },
+    "dashboard": {
+      "title": "ڈیش بورڈ",
+      "subtitle": "آج ایک نظر میں",
+      "empty": "ابھی دکھانے کو کچھ نہیں۔"
     }
   },
   "items": {
@@ -443,7 +450,9 @@
       "cancel": "صاف",
       "print": "دوبارہ پرنٹ"
     },
-    "noShift": "کوئی کیش شفٹ کھلی نہیں۔ بیچنے کے لیے شفٹ کھولیں۔"
+    "noShift": "کوئی کیش شفٹ کھلی نہیں۔ بیچنے کے لیے شفٹ کھولیں۔",
+    "overrideTitle": "مالک کی منظوری درکار ہے",
+    "overrideConfirm": "منظور کریں اور بیچیں"
   },
   "print": {
     "failedTitle": "پرنٹ نہیں ہو سکا",
@@ -569,5 +578,54 @@
     "cancel": "منسوخ",
     "restoredTitle": "بیک اپ بحال ہو گیا",
     "restarting": "ایپ دوبارہ شروع ہو رہی ہے..."
+  },
+  "pharmacy": {
+    "itemTitle": "دوا کی تفصیل",
+    "genericName": "جنرک نام",
+    "manufacturer": "کمپنی / بنانے والا",
+    "strength": "طاقت",
+    "form": "قسم",
+    "formHint": "گولی، شربت، ٹیکہ...",
+    "schedule": "شیڈول",
+    "otc": "بغیر نسخہ (OTC)",
+    "rx": "صرف نسخے پر (Rx)",
+    "controlled": "کنٹرولڈ",
+    "rack": "ریک / شیلف",
+    "batchLine": "بیچ {{batch}} | ایکسپائری {{exp}} | {{qty}}",
+    "expired": "ایکسپائر",
+    "needsOwner": "صرف ایکسپائر مال بچا ہے۔ مالک کی منظوری درکار ہے۔",
+    "widgetTitle": "فارمیسی",
+    "nearExpiry": "30 دن میں ایکسپائر",
+    "expiredCount": "ایکسپائر بیچ",
+    "wantCount": "وانٹ بک (آرڈر کرنا ہے)",
+    "expiryList": "ایکسپائری فہرست",
+    "within30": "30 دن",
+    "within60": "60 دن",
+    "within90": "90 دن",
+    "noSupplier": "سپلائر نہیں",
+    "batch": "بیچ",
+    "exp": "ایکسپائری",
+    "qty": "تعداد",
+    "copied": "کاپی ہو گیا۔ واٹس ایپ میں پیسٹ کریں۔",
+    "allSuppliers": "تمام سپلائر",
+    "copyWhatsapp": "واٹس ایپ کے لیے کاپی",
+    "nothingExpiring": "یہاں کچھ نہیں۔ بہت خوب۔",
+    "daysAgo": "{{n}} دن پہلے",
+    "daysLeft": "{{n}} دن باقی",
+    "wantBookTitle": "وانٹ بک",
+    "wantBookSubtitle": "آرڈر کی دوائیں، سپلائر کے حساب سے",
+    "medicine": "دوا",
+    "searchMedicine": "کم از کم 2 حرف لکھیں",
+    "orTypeName": "یا نام لکھیں",
+    "lastSupplier": "آخری سپلائر",
+    "add": "شامل کریں",
+    "wantEmpty": "ابھی کچھ آرڈر کرنے کو نہیں۔",
+    "source_auto": "خودکار",
+    "source_manual": "دستی",
+    "status_open": "آرڈر کرنا ہے",
+    "status_ordered": "آرڈر ہو گیا",
+    "status_done": "مکمل",
+    "markOrdered": "آرڈر ہو گیا",
+    "markDone": "مکمل"
   }
 }

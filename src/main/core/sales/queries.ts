@@ -55,6 +55,14 @@ export function getSale(db: Database.Database, id: number): Sale | null {
        FROM sale_lines sl WHERE sl.sale_id = ? ORDER BY sl.id`
     )
     .all(id) as LineRow[]
+  const lotRows = db
+    .prepare(
+      `SELECT sll.sale_line_id, sll.lot_id, sll.qty_base, l.lot_no, l.expiry_date
+       FROM sale_line_lots sll JOIN stock_lots l ON l.id = sll.lot_id
+       JOIN sale_lines sl ON sl.id = sll.sale_line_id
+       WHERE sl.sale_id = ? ORDER BY sll.id`
+    )
+    .all(id) as Array<{ sale_line_id: number; lot_id: number; qty_base: number; lot_no: string; expiry_date: string | null }>
   const returned = db
     .prepare('SELECT COALESCE(SUM(total), 0) AS t FROM sale_returns WHERE sale_id = ?')
     .get(id) as { t: number }
@@ -94,7 +102,10 @@ export function getSale(db: Database.Database, id: number): Sale | null {
         discountBp: l.discount_bp,
         lineTotal: l.line_total,
         netTotal: l.net_total,
-        returnedBase: l.returned_base
+        returnedBase: l.returned_base,
+        lots: lotRows
+          .filter((r) => r.sale_line_id === l.id)
+          .map((r) => ({ lotId: r.lot_id, lotNo: r.lot_no, expiryDate: r.expiry_date, qtyBase: r.qty_base }))
       })
     )
   }

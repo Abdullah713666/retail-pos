@@ -36,3 +36,11 @@ export function nowLocal(): string {
 export function todayLocal(): string {
   return formatLocalDate(new Date())
 }
+
+/**
+ * Adds whole days to a 'YYYY-MM-DD' date (local calendar, DST safe) and returns 'YYYY-MM-DD'.
+ */
+export function addDaysLocal(date: string, days: number): string {
+  const [y, m, d] = date.split('-').map(Number)
+  return formatLocalDate(new Date(y, m - 1, d + days))
+}

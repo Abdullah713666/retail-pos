@@ -1,4 +1,7 @@
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect, afterEach, vi } from 'vitest'
+
+// Enabling the pharmacy module registers its IPC handlers; there is no Electron in tests.
+vi.mock('electron', () => ({ ipcMain: { handle: vi.fn() } }))
 import { createTestDb } from '../../db/test-helper'
 import { AVAILABLE_MODULES } from '../../modules/registry'
 import {

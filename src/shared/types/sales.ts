@@ -25,6 +25,16 @@ export interface CompleteSaleInput extends SaleDraftInput {
   paidCash: number
   /** Part of the total put on the customer's khata. */
   paidCredit: number
+  /** Owner PIN to sell stock a module blocked (e.g. expired batches). Sent only after the screen asked for it. */
+  overrideApproval?: Approval | null
+}
+
+/** One batch a sale line took stock from (empty for items without batches). */
+export interface SaleLineLot {
+  lotId: number
+  lotNo: string
+  expiryDate: string | null
+  qtyBase: number
 }
 
 export interface SaleLine {
@@ -43,6 +53,8 @@ export interface SaleLine {
   lineTotal: number
   netTotal: number
   returnedBase: number
+  /** Batch + expiry per chunk the allocator used. */
+  lots: SaleLineLot[]
 }
 
 export interface Sale {

@@ -27,7 +27,10 @@ import type {
   TestPrintInput,
   SalesReportInput,
   SaveCsvInput,
-  RestoreInput
+  RestoreInput,
+  ExpiryFilter,
+  WantBookAddInput,
+  WantStatus
 } from '../shared/types'
 
 const api: IpcApi = {
@@ -40,6 +43,17 @@ const api: IpcApi = {
   },
   setup: {
     complete: (input: SetupCompleteInput) => ipcRenderer.invoke('setup:complete', input)
+  },
+  pharmacy: {
+    getItemInfo: (itemId: number) => ipcRenderer.invoke('pharmacy:getItemInfo', itemId),
+    previewAllocation: (input: { itemId: number; qtyBase: number }) =>
+      ipcRenderer.invoke('pharmacy:previewAllocation', input),
+    listExpiry: (filter: ExpiryFilter) => ipcRenderer.invoke('pharmacy:listExpiry', filter),
+    wantBookList: (status: WantStatus | 'active') => ipcRenderer.invoke('pharmacy:wantBook:list', status),
+    wantBookAdd: (input: WantBookAddInput) => ipcRenderer.invoke('pharmacy:wantBook:add', input),
+    wantBookSetStatus: (input: { id: number; status: WantStatus }) =>
+      ipcRenderer.invoke('pharmacy:wantBook:setStatus', input),
+    dashboard: () => ipcRenderer.invoke('pharmacy:dashboard')
   },
   modules: {
     getEnabled: () => ipcRenderer.invoke('modules:getEnabled'),

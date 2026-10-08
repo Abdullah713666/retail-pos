@@ -13,7 +13,9 @@
     "setup": "Setup",
     "expiry": "Expiry",
     "login": "Login",
-    "logout": "Logout"
+    "logout": "Logout",
+    "dashboard": "Dashboard",
+    "wantBook": "Want-book"
   },
   "roles": {
     "owner": "Owner",
@@ -139,6 +141,11 @@
     "expiry": {
       "title": "Expiry Console",
       "subtitle": "Track near-expiry batches and supplier returns"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Today at a glance",
+      "empty": "Nothing to show yet."
     }
   },
   "items": {
@@ -443,7 +450,9 @@
       "cancel": "Clear",
       "print": "Reprint"
     },
-    "noShift": "No cash shift is open. Open one to start selling."
+    "noShift": "No cash shift is open. Open one to start selling.",
+    "overrideTitle": "Owner approval needed",
+    "overrideConfirm": "Approve and sell"
   },
   "print": {
     "failedTitle": "Printing failed",
@@ -569,5 +578,54 @@
     "cancel": "Cancel",
     "restoredTitle": "Backup restored",
     "restarting": "The app is restarting..."
+  },
+  "pharmacy": {
+    "itemTitle": "Medicine details",
+    "genericName": "Generic name",
+    "manufacturer": "Company / manufacturer",
+    "strength": "Strength",
+    "form": "Form",
+    "formHint": "Tablet, syrup, injection...",
+    "schedule": "Schedule",
+    "otc": "OTC (no prescription)",
+    "rx": "Prescription only (Rx)",
+    "controlled": "Controlled",
+    "rack": "Rack / shelf",
+    "batchLine": "Batch {{batch}} | Exp {{exp}} | {{qty}}",
+    "expired": "Expired",
+    "needsOwner": "Only expired stock is left. Owner approval needed.",
+    "widgetTitle": "Pharmacy",
+    "nearExpiry": "Expiring in 30 days",
+    "expiredCount": "Expired batches",
+    "wantCount": "Want-book (to order)",
+    "expiryList": "Expiry list",
+    "within30": "30 days",
+    "within60": "60 days",
+    "within90": "90 days",
+    "noSupplier": "No supplier",
+    "batch": "Batch",
+    "exp": "Exp",
+    "qty": "Qty",
+    "copied": "Copied. Paste it into WhatsApp.",
+    "allSuppliers": "All suppliers",
+    "copyWhatsapp": "Copy for WhatsApp",
+    "nothingExpiring": "Nothing here. Good.",
+    "daysAgo": "{{n}} days ago",
+    "daysLeft": "{{n}} days left",
+    "wantBookTitle": "Want-book",
+    "wantBookSubtitle": "Medicines to order, grouped by supplier",
+    "medicine": "Medicine",
+    "searchMedicine": "Type 2+ letters",
+    "orTypeName": "Or type a name",
+    "lastSupplier": "Last supplier",
+    "add": "Add",
+    "wantEmpty": "Nothing to order right now.",
+    "source_auto": "Auto",
+    "source_manual": "Manual",
+    "status_open": "To order",
+    "status_ordered": "Ordered",
+    "status_done": "Done",
+    "markOrdered": "Mark ordered",
+    "markDone": "Done"
   }
 }

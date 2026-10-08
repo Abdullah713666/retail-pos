@@ -11,11 +11,11 @@ describe('Renderer UI Module registry', () => {
     expect(active.length).toBe(1)
     expect(active[0]).toBe(AVAILABLE_UI_MODULES.pharmacy)
     expect(active[0].id).toBe('pharmacy')
-    expect(active[0].menu.length).toBe(1)
-    expect(active[0].menu[0].label).toBe('nav.expiry')
-    expect(active[0].menu[0].path).toBe('/pharmacy/expiry')
-    expect(active[0].routes.length).toBe(1)
-    expect(active[0].routes[0].path).toBe('pharmacy/expiry')
+    expect(active[0].menu.map((m) => m.path)).toEqual(['/pharmacy/expiry', '/pharmacy/want-book'])
+    expect(active[0].routes.map((r) => r.path)).toEqual(['pharmacy/expiry', 'pharmacy/want-book'])
+    expect(active[0].dashboardWidgets?.length).toBe(1)
+    expect(active[0].itemFormFields).toBeDefined()
+    expect(active[0].saleLineInfo).toBeDefined()
   })
 
   it('filters out unknown module IDs', () => {

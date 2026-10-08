@@ -61,6 +61,7 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
   const [trackStock, setTrackStock] = useState(true)
   const [trackLots, setTrackLots] = useState(false)
   const [units, setUnits] = useState<UnitDraft[]>([])
+  const [moduleData, setModuleData] = useState<Record<string, Record<string, unknown>>>({})
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -95,9 +96,11 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
       setOpeningStock('')
       setReorderLevel(0)
       setTrackStock(true)
-      setTrackLots(false)
+      setTrackLots(activeUiModules.some((m) => m.defaultTrackLots))
       setUnits([])
     }
+    setModuleData({})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item, opened])
 
   const handleAddUnit = (): void => {
@@ -172,7 +175,8 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
           reorderLevel: typeof reorderLevel === 'number' ? reorderLevel : 0,
           trackStock,
           trackLots,
-          units: formattedUnits
+          units: formattedUnits,
+          moduleData
         })
         if (res.ok) {
           notifications.show({ color: 'green', message: t('items.itemSaved') })
@@ -193,6 +197,7 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
           trackStock,
           trackLots,
           units: formattedUnits,
+          moduleData,
           openingStock:
             !trackLots && typeof openingStock === 'number' && openingStock > 0
               ? { qty: openingStock }
@@ -388,7 +393,13 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
         {activeUiModules.map((mod) => {
           if (!mod.itemFormFields) return null
           const ExtField = mod.itemFormFields
-          return <ExtField key={mod.id} itemId={item?.id} />
+          return (
+            <ExtField
+              key={mod.id}
+              itemId={item?.id}
+              onChange={(data) => setModuleData((prev) => ({ ...prev, [mod.id]: data }))}
+            />
+          )
         })}
 
         <Group justify="flex-end" mt="md">

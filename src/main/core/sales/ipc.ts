@@ -28,9 +28,13 @@ const draftShape = {
   heldSaleId: id.nullable().optional()
 }
 const draftSchema = z.object(draftShape)
-const completeSchema = z.object({ ...draftShape, paidCash: money, paidCredit: money })
-
 const approval = z.object({ userId: id, pin: z.string().regex(/^\d{4,6}$/) })
+const completeSchema = z.object({
+  ...draftShape,
+  paidCash: money,
+  paidCredit: money,
+  overrideApproval: approval.nullable().optional()
+})
 
 const returnSchema = z.object({
   saleId: id,
