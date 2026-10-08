@@ -39,6 +39,17 @@ export interface SetupCompleteInput {
   }
 }
 
+export interface SetupResult {
+  user: User
+  /** Shown once on the last wizard screen. Only its hash is stored. */
+  recoveryCode: string
+}
+
+export interface ChangePinInput {
+  currentPin: string
+  newPin: string
+}
+
 export interface AppSettings {
   shop_name: string
   shop_address: string

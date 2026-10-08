@@ -10,12 +10,14 @@ import {
   IconSettings,
   IconLayoutDashboard,
   IconLogout,
-  IconUser
+  IconUser,
+  IconKey
 } from '@tabler/icons-react'
 import { useLocation, useNavigate, Outlet } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useModules } from '../modules'
 import { useAuth } from '../context/AuthContext'
+import { ChangePinModal } from '../components/ChangePinModal'
 import { ColorSchemeToggle } from '../components/ColorSchemeToggle'
 
 export const AppLayout: React.FC = () => {
@@ -69,6 +71,7 @@ export const AppLayout: React.FC = () => {
     })
   }
 
+  const [pinModalOpen, setPinModalOpen] = useState(false)
   const [version, setVersion] = useState<string>('')
 
   useEffect(() => {
@@ -147,6 +150,15 @@ export const AppLayout: React.FC = () => {
               fullWidth
               size="xs"
               variant="subtle"
+              leftSection={<IconKey size={14} />}
+              onClick={() => setPinModalOpen(true)}
+            >
+              {t('pin.changeTitle')}
+            </Button>
+            <Button
+              fullWidth
+              size="xs"
+              variant="subtle"
               color="red"
               leftSection={<IconLogout size={14} />}
               onClick={handleLogout}
@@ -156,6 +168,7 @@ export const AppLayout: React.FC = () => {
           </Box>
         )}
       </AppShell.Navbar>
+      <ChangePinModal opened={pinModalOpen} onClose={() => setPinModalOpen(false)} />
       <AppShell.Main>
         <Outlet />
       </AppShell.Main>

@@ -1,11 +1,15 @@
 import type Database from 'better-sqlite3'
-import type { AppSettings, SetupCompleteInput, User } from '@shared/types'
+import type { AppSettings, SetupCompleteInput, SetupResult } from '@shared/types'
 import { err, ok, type Result } from '@shared/result'
 import { nowLocal } from '@shared/dates'
 import { applyMigrations } from '../../db/migrate'
 import { AVAILABLE_MODULES, getEnabledModuleIds, initModules } from '../../modules/registry'
 import { hashPin, hasUsers } from '../users/service'
 import { login } from '../auth/service'
+import { storeNewRecoveryCode, RECOVERY_HASH_KEY } from '../auth/recovery'
+
+/** Settings the renderer must never read or write directly. */
+export const SECRET_SETTING_KEYS: string[] = [RECOVERY_HASH_KEY]
 
 /**
  * Returns value for a specific setting key, or null if not found.
@@ -99,7 +103,7 @@ export function getAppSettings(db: Database.Database): AppSettings {
 export function completeSetup(
   db: Database.Database,
   input: SetupCompleteInput
-): Result<User> {
+): Result<SetupResult> {
   if (hasUsers(db)) {
     return err({
       code: 'ALREADY_SET_UP',
@@ -118,7 +122,7 @@ export function completeSetup(
   }
 
   try {
-    const runTransaction = db.transaction((): User => {
+    const runTransaction = db.transaction((): SetupResult => {
       // 1. Apply module migrations
       for (const id of uniqueModuleIds) {
         const mod = AVAILABLE_MODULES[id]
@@ -163,22 +167,28 @@ export function completeSetup(
 
       const info = userStmt.run(trimmedName, trimmedUsername, pinHash, createdAt)
 
+      // 4. Recovery code: only its hash is stored; the plain code is returned once.
+      const recoveryCode = storeNewRecoveryCode(db)
+
       return {
-        id: Number(info.lastInsertRowid),
-        name: trimmedName,
-        username: trimmedUsername,
-        role: 'owner',
-        active: 1,
-        createdAt
+        user: {
+          id: Number(info.lastInsertRowid),
+          name: trimmedName,
+          username: trimmedUsername,
+          role: 'owner',
+          active: 1,
+          createdAt
+        },
+        recoveryCode
       }
     })
 
-    const createdUser = runTransaction()
+    const result = runTransaction()
 
     initModules({ db })
-    login(db, { userId: createdUser.id, pin: input.owner.pin })
+    login(db, { userId: result.user.id, pin: input.owner.pin })
 
-    return ok(createdUser)
+    return ok(result)
   } catch (error) {
     return err({
       code: 'SETUP_FAILED',

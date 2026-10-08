@@ -102,10 +102,10 @@ describe('Settings service', () => {
 
       expect(res.ok).toBe(true)
       if (res.ok) {
-        expect(res.data.name).toBe('Abdullah')
-        expect(res.data.username).toBe('owner')
-        expect(res.data.role).toBe('owner')
-        expect(res.data.active).toBe(1)
+        expect(res.data.user.name).toBe('Abdullah')
+        expect(res.data.user.username).toBe('owner')
+        expect(res.data.user.role).toBe('owner')
+        expect(res.data.user.active).toBe(1)
       }
 
       // Settings were saved

@@ -19,6 +19,7 @@ import { useModules } from '../modules'
 import { changeAppLanguage } from '../i18n'
 import { UsersTab } from './settings/UsersTab'
 import { BackupTab } from './settings/BackupTab'
+import { RecoverySection } from './settings/RecoverySection'
 import { PrinterFields } from '../components/PrinterFields'
 import type { PrintMode, User } from '@shared/types'
 
@@ -42,6 +43,7 @@ export const SettingsScreen: React.FC = () => {
 
   // Users tab state
   const [userList, setUserList] = useState<User[]>([])
+  const [hasRecovery, setHasRecovery] = useState(true)
 
   const loadSettingsAndUsers = useCallback(async (): Promise<void> => {
     try {
@@ -61,6 +63,11 @@ export const SettingsScreen: React.FC = () => {
             setLanguage(s['language'])
           }
         }
+      }
+
+      if (window.api?.recovery) {
+        const rRes = await window.api.recovery.status()
+        if (rRes.ok) setHasRecovery(rRes.data.hasCode)
       }
 
       setPharmacyEnabled(enabledModules.includes('pharmacy'))
@@ -146,6 +153,12 @@ export const SettingsScreen: React.FC = () => {
   return (
     <div>
       <PageHeader title={t('screens.settings.title')} subtitle={t('screens.settings.subtitle')} />
+
+      {!hasRecovery && (
+        <Alert color="orange" mb="md" title={t('recovery.bannerTitle')}>
+          {t('recovery.bannerText')}
+        </Alert>
+      )}
 
       <Card withBorder shadow="sm" p="lg" radius="md">
         <Tabs defaultValue="shop">
@@ -268,6 +281,11 @@ export const SettingsScreen: React.FC = () => {
               userList={userList}
               currentUserId={user.id}
               onUserChanged={loadSettingsAndUsers}
+            />
+            <RecoverySection
+              hasCode={hasRecovery}
+              shopName={shopName}
+              onChanged={loadSettingsAndUsers}
             />
           </Tabs.Panel>
 

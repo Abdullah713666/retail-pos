@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import type { User } from '@shared/types'
 import { useAuth } from '../context/AuthContext'
+import { RecoverOwnerModal } from './RecoverOwnerModal'
 
 export const LoginScreen: React.FC = () => {
   const { t } = useTranslation()
@@ -29,6 +30,7 @@ export const LoginScreen: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [fetchingUsers, setFetchingUsers] = useState(true)
+  const [recoverOpen, setRecoverOpen] = useState(false)
 
   const loadUsers = useCallback(async (): Promise<void> => {
     try {
@@ -97,6 +99,7 @@ export const LoginScreen: React.FC = () => {
 
   // Physical keyboard support
   useEffect(() => {
+    if (recoverOpen) return undefined // the recovery dialog has its own inputs
     const handleKeyDown = (e: KeyboardEvent): void => {
       if (e.key >= '0' && e.key <= '9') {
         handleDigit(e.key)
@@ -111,7 +114,7 @@ export const LoginScreen: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [handleDigit, handleBackspace, handleClear, handleSubmit])
+  }, [handleDigit, handleBackspace, handleClear, handleSubmit, recoverOpen])
 
   const roleColor: Record<string, string> = {
     owner: 'blue',
@@ -275,9 +278,20 @@ export const LoginScreen: React.FC = () => {
             >
               {t('auth.loginButton')}
             </Button>
+            <Button variant="subtle" size="xs" onClick={() => setRecoverOpen(true)}>
+              {t('recovery.forgotLink')}
+            </Button>
           </Stack>
         </SimpleGrid>
       </Card>
+      <RecoverOwnerModal
+        opened={recoverOpen}
+        onClose={() => setRecoverOpen(false)}
+        onDone={() => {
+          setPin('')
+          setError(null)
+        }}
+      />
     </div>
   )
 }

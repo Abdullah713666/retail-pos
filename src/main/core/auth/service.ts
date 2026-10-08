@@ -24,9 +24,17 @@ export function setCurrentUserForTest(user: User | null): void {
   currentSessionUser = user
 }
 
-export function login(db: Database.Database, input: LoginInput): Result<User> {
+/**
+ * Checks a PIN with the shared 5-strikes / 1-minute lockout. Used by login and by
+ * every "enter your current PIN" step, so guessing there is limited too.
+ */
+export function checkPinWithLockout(
+  db: Database.Database,
+  userId: number,
+  pin: string
+): Result<User> {
   const now = Date.now()
-  const attempt = failedAttempts.get(input.userId)
+  const attempt = failedAttempts.get(userId)
 
   if (attempt && attempt.lockedUntil > now) {
     return err({
@@ -37,16 +45,16 @@ export function login(db: Database.Database, input: LoginInput): Result<User> {
 
   // Lockout expired, reset attempts
   if (attempt && attempt.lockedUntil > 0 && attempt.lockedUntil <= now) {
-    failedAttempts.delete(input.userId)
+    failedAttempts.delete(userId)
   }
 
-  const verifiedUser = verifyUserPin(db, input.userId, input.pin)
+  const verifiedUser = verifyUserPin(db, userId, pin)
   if (!verifiedUser) {
-    const current = failedAttempts.get(input.userId) || { count: 0, lockedUntil: 0 }
+    const current = failedAttempts.get(userId) || { count: 0, lockedUntil: 0 }
     const newCount = current.count + 1
 
     if (newCount >= 5) {
-      failedAttempts.set(input.userId, {
+      failedAttempts.set(userId, {
         count: newCount,
         lockedUntil: now + 60000
       })
@@ -56,7 +64,7 @@ export function login(db: Database.Database, input: LoginInput): Result<User> {
       })
     }
 
-    failedAttempts.set(input.userId, {
+    failedAttempts.set(userId, {
       count: newCount,
       lockedUntil: 0
     })
@@ -66,10 +74,22 @@ export function login(db: Database.Database, input: LoginInput): Result<User> {
     })
   }
 
-  // Reset counter on successful login
-  failedAttempts.delete(input.userId)
-  currentSessionUser = verifiedUser
+  // Reset counter on success
+  failedAttempts.delete(userId)
   return ok(verifiedUser)
+}
+
+/** Clears a user's wrong-PIN counter (after an owner reset or recovery). */
+export function clearFailedAttempts(userId: number): void {
+  failedAttempts.delete(userId)
+}
+
+export function login(db: Database.Database, input: LoginInput): Result<User> {
+  const res = checkPinWithLockout(db, input.userId, input.pin)
+  if (res.ok) {
+    currentSessionUser = res.data
+  }
+  return res
 }
 
 export function logout(): Result<void> {

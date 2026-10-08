@@ -1,11 +1,11 @@
 RETAIL POS - USER GUIDE
 =======================
-Version 0.1.1. Shop software for Windows 10 / 11. Works fully offline.
+Version 0.1.2. Shop software for Windows 10 / 11. Works fully offline.
 
 
 1. INSTALLING ON WINDOWS
 ------------------------
-1. Copy "Retail-POS-Setup-0.1.1.exe" to the shop PC (USB, WhatsApp, Google Drive).
+1. Copy "Retail-POS-Setup-0.1.2.exe" to the shop PC (USB, WhatsApp, Google Drive).
 2. Double-click it.
 3. Windows may show a blue box "Windows protected your PC".
    Click "More info", then "Run anyway". (This happens because the
@@ -28,6 +28,12 @@ The first time the app opens, it asks for:
   - Owner account: your name, username and a 4-6 digit PIN
 
 Remember the owner PIN. Without it nobody can change settings.
+
+RECOVERY CODE: at the end of setup the app shows a recovery code, like
+ABCD-EFGH-JKLM. It is shown ONLY ONCE. Write it on paper (or press Print)
+and keep it in a safe place, not on the shop computer. If you forget the
+owner PIN, this code is the only way back in. Tick "I have written it down"
+to continue.
 
 
 3. USERS AND ROLES
@@ -151,6 +157,16 @@ Light / dark mode: click the sun / moon button at the top of the menu.
                            Test print. The sale is still saved; press F9 later.
   "Not enough stock"     : add a purchase, or check the item's stock.
   "No shift is open"     : Cash > Open shift.
-  Forgot cashier PIN     : owner deactivates that user in Settings > Users
-                           and adds them again with a new PIN.
-  Forgot OWNER PIN       : there is no reset yet. Write it down somewhere safe.
+  Want to change my PIN  : click "Change my PIN" at the bottom of the left
+                           menu. Enter the old PIN, then the new PIN twice.
+  Forgot cashier PIN     : owner goes to Settings > User Accounts, presses
+                           "Reset PIN" next to that user and types a new PIN.
+  Forgot OWNER PIN       : on the login screen press "Forgot owner PIN?".
+                           Type the recovery code from your paper and a new
+                           PIN (twice). After 5 wrong codes it locks for
+                           15 minutes. The code works only ONCE. Then log in,
+                           go to Settings > User Accounts and press
+                           "Generate new recovery code". Write the new code
+                           down. (Do this too if you lose the paper.)
+  No recovery code yet   : an orange warning shows in Settings. Press
+                           "Generate new recovery code" and write it down.

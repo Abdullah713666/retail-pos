@@ -22,6 +22,21 @@ Newest entry at the top. Gemini adds a **Build** entry after each milestone; Cla
 
 ---
 
+### [Build] PIN change + owner recovery — 2026-10-08
+- Summary: Any user can change their own PIN (current PIN required; wrong ones count toward the existing 5-strike lockout). Owner can reset another user's PIN (not their own). Owner recovery code: generated at setup, only its scrypt hash is stored (`settings.owner_recovery_hash`), shown once on a final wizard screen (print + "I have written it down" checkbox). Owner can regenerate it in Settings > User Accounts (needs owner PIN). Login screen "Forgot owner PIN?" resets the first active owner's PIN, then deletes the hash; 5 wrong codes lock 15 min (in memory). Every outcome is audited (codes never logged). Warning banner in Settings when no code exists.
+- Files: src/main/core/auth/{service,pin,recovery,ipc}.ts, pin.test.ts; users/service.ts (hashSecret/verifySecretHash); settings/service.ts (completeSetup returns `{user, recoveryCode}`, SECRET_SETTING_KEYS); ipc/register.ts; preload; shared/ipc-contract + types; renderer: RecoveryCodeDisplay, ChangePinModal, RecoverOwnerModal, settings/RecoverySection, UsersTab, SettingsScreen, SetupScreen, LoginScreen, layout, i18n en+ur; docs/USER_GUIDE.txt.
+- Checks: typecheck ✅ lint ✅ tests ✅ (250 tests, 12 new)
+- Manual test steps:
+  1. Fresh install: finish wizard, see recovery code screen, Continue is disabled until the box is ticked.
+  2. Click "Change my PIN" (left menu) as any user; try wrong current PIN, then right.
+  3. Settings > User Accounts > "Reset PIN" on a cashier; log in as them with the new PIN.
+  4. Log out > "Forgot owner PIN?" > enter code + new PIN; code then no longer works; Settings shows the orange banner.
+  5. Settings > Generate new recovery code (needs PIN).
+- Open questions / deviations:
+  - `setup:complete` now returns `{ user, recoveryCode }` instead of `User`.
+  - `settings:getAll/get/set/setMany` hide and block the recovery hash key.
+  - Login "Change my PIN" lives in the left-menu user box (not Settings, which is owner-only). Recovery lock counter is global, in memory, resets on app restart (same as PIN lockout). Not run by hand in `npm run dev` (no display here).
+
 ### [Build] M0 — Project scaffold — 2026-10-08
 - Summary: Project scaffolded with electron-vite, React 18, TypeScript strict mode, and Mantine v7. Exact folder structure matching ARCHITECTURE.md §4 created with placeholders. Left sidebar menu with placeholder screens, i18n setup, and HashRouter navigation active.
 - Files: package.json, electron.vite.config.ts, tsconfig*.json, .eslintrc.json, .prettierrc, vitest.config.ts, src/main/*, src/preload/*, src/renderer/*, src/shared/*, resources/*, .github/workflows/build-windows.yml
@@ -430,3 +445,6 @@ Newest entry at the top. Gemini adds a **Build** entry after each milestone; Cla
 
 ### [Review] M13 — 2026-10-08
 - Verdict: **approved (code)**. NSIS x64, data in userData (reinstall keeps data), better-sqlite3 unpacked from asar. Reviewer added `npm rebuild better-sqlite3` before tests in CI (postinstall builds it for Electron, which breaks vitest under Node). Not yet run on GitHub — first tag push is the real test. Owner: follow docs/RELEASE.md and run the Windows checklist.
+
+### [Review] PIN change + owner recovery — 2026-10-08
+- Verdict: **approved**. Change own PIN (needs current), owner resets others, one-time recovery code (60-bit random, scrypt hash only, hidden from renderer via SECRET_SETTING_KEYS, consumed on use, 5 wrong → 15 min lock, audited). 250 tests pass. Released as v0.1.2.

@@ -4,6 +4,8 @@ import type {
   CreateUserInput,
   LoginInput,
   SetupCompleteInput,
+  SetupResult,
+  ChangePinInput,
   Category,
   Item,
   CreateItemInput,
@@ -81,7 +83,7 @@ export interface IpcApi {
     getMigrationStatus: () => Promise<Result<MigrationStatus>>
   }
   setup: {
-    complete: (input: SetupCompleteInput) => Promise<Result<User>>
+    complete: (input: SetupCompleteInput) => Promise<Result<SetupResult>>
   }
   pharmacy: {
     getItemInfo: (itemId: number) => Promise<Result<PharmacyItemInfo | null>>
@@ -106,8 +108,15 @@ export interface IpcApi {
     list: () => Promise<Result<User[]>>
     create: (input: CreateUserInput) => Promise<Result<User>>
     deactivate: (id: number) => Promise<Result<void>>
+    changeOwnPin: (input: ChangePinInput) => Promise<Result<void>>
+    resetPin: (input: { userId: number; newPin: string }) => Promise<Result<void>>
+  }
+  recovery: {
+    status: () => Promise<Result<{ hasCode: boolean }>>
+    regenerate: (input: { pin: string }) => Promise<Result<{ code: string }>>
   }
   auth: {
+    recoverOwnerPin: (input: { code: string; newPin: string }) => Promise<Result<void>>
     login: (input: LoginInput) => Promise<Result<User>>
     logout: () => Promise<Result<void>>
     getCurrentUser: () => Promise<Result<User | null>>

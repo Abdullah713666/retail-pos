@@ -1,6 +1,6 @@
 {
   "name": "retail-pos",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Offline-first Windows desktop POS for small shops in Pakistan",
   "main": "./out/main/index.js",
   "author": "Abdullah",

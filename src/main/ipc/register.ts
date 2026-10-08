@@ -1,6 +1,6 @@
 import { app } from 'electron'
 import { z } from 'zod'
-import { ok } from '@shared/result'
+import { ok, err } from '@shared/result'
 import type { MigrationStatus } from '@shared/ipc-contract'
 import { handleIpc } from './handle'
 import { getDb } from '../db/connection'
@@ -10,7 +10,8 @@ import {
   getAllSettings,
   setSetting,
   setSettings,
-  completeSetup
+  completeSetup,
+  SECRET_SETTING_KEYS
 } from '../core/settings/service'
 import {
   listUsers,
@@ -24,6 +25,7 @@ import {
   getCurrentUser,
   checkPermission
 } from '../core/auth/service'
+import { registerPinIpc } from '../core/auth/ipc'
 import { registerItemsIpc } from '../core/items/ipc'
 import { registerPurchasesIpc } from '../core/purchases/ipc'
 import { registerSalesIpc } from '../core/sales/ipc'
@@ -91,11 +93,14 @@ export function registerIpcHandlers(): void {
   // Settings
   handleIpc('settings:getAll', async () => {
     const db = getDb()
-    return ok(getAllSettings(db))
+    const all = getAllSettings(db)
+    for (const k of SECRET_SETTING_KEYS) delete all[k]
+    return ok(all)
   })
 
   handleIpc('settings:get', z.string(), async (key) => {
     const db = getDb()
+    if (SECRET_SETTING_KEYS.includes(key)) return ok(null)
     return ok(getSetting(db, key))
   })
 
@@ -107,6 +112,9 @@ export function registerIpcHandlers(): void {
       const perm = checkPermission(db, ['owner'])
       if (!perm.ok) return perm
 
+      if (SECRET_SETTING_KEYS.includes(key)) {
+        return err({ code: 'FORBIDDEN', message: 'This setting cannot be changed here' })
+      }
       setSetting(db, key, value)
       return ok(undefined)
     }
@@ -117,6 +125,9 @@ export function registerIpcHandlers(): void {
     const perm = checkPermission(db, ['owner'])
     if (!perm.ok) return perm
 
+    if (Object.keys(settings).some((k) => SECRET_SETTING_KEYS.includes(k))) {
+      return err({ code: 'FORBIDDEN', message: 'This setting cannot be changed here' })
+    }
     setSettings(db, settings)
     return ok(undefined)
   })
@@ -179,6 +190,9 @@ export function registerIpcHandlers(): void {
     const db = getDb()
     return ok(hasUsers(db))
   })
+
+  // PIN change / reset / owner recovery code
+  registerPinIpc()
 
   // Items & Categories
   registerItemsIpc()

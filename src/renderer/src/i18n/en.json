@@ -631,5 +631,38 @@
   "theme": {
     "dark": "Dark mode",
     "light": "Light mode"
+  },
+  "pin": {
+    "changeTitle": "Change my PIN",
+    "changeButton": "Change PIN",
+    "current": "Current PIN",
+    "new": "New PIN (4-6 digits)",
+    "confirm": "Type the new PIN again",
+    "changed": "Your PIN was changed",
+    "resetButton": "Reset PIN",
+    "resetDone": "PIN was reset. Tell the user their new PIN."
+  },
+  "recovery": {
+    "setupTitle": "Your owner recovery code",
+    "writeDownTitle": "Write this down now",
+    "writeDownText": "This code is shown only once. If you forget the owner PIN, this code is the only way back in. Write it on paper or print it, and keep it in a safe place.",
+    "codeLabel": "Owner recovery code",
+    "keepSafe": "Keep this paper safe. Do not share it.",
+    "print": "Print",
+    "writtenDown": "I have written it down",
+    "bannerTitle": "No recovery code yet",
+    "bannerText": "If you forget the owner PIN you will be locked out. Go to the User Accounts tab and press \"Generate new recovery code\".",
+    "sectionTitle": "Owner recovery code",
+    "sectionHas": "A recovery code is set. It cannot be shown again. Generating a new one cancels the old one.",
+    "sectionNone": "No recovery code is set yet.",
+    "generate": "Generate new recovery code",
+    "generateWarn": "The old code stops working. Enter your PIN to continue.",
+    "done": "Done",
+    "forgotLink": "Forgot owner PIN?",
+    "forgotTitle": "Forgot owner PIN",
+    "enterCode": "Recovery code",
+    "resetButton": "Reset owner PIN",
+    "doneText": "The owner PIN was changed. The recovery code is now used up. Log in, then go to Settings > User Accounts and generate a new recovery code.",
+    "backToLogin": "Back to login"
   }
 }

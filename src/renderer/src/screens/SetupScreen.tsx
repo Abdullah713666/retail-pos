@@ -11,6 +11,7 @@ import {
 import { notifications } from '@mantine/notifications'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
+import { RecoveryCodeDisplay } from '../components/RecoveryCodeDisplay'
 import { useAuth } from '../context/AuthContext'
 import { useModules } from '../modules'
 import { changeAppLanguage } from '../i18n'
@@ -31,6 +32,8 @@ export const SetupScreen: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [recoveryCode, setRecoveryCode] = useState<string | null>(null)
+  const [acknowledged, setAcknowledged] = useState(false)
 
   // Step 1: Shop Details
   const [shopName, setShopName] = useState('')
@@ -126,21 +129,48 @@ export const SetupScreen: React.FC = () => {
         return
       }
 
-      await refreshModules()
-      await refreshAuth()
-
-      notifications.show({
-        title: t('common.success'),
-        message: t('wizard.title'),
-        color: 'green'
-      })
-
-      navigate('/')
+      // Show the recovery code once. The app only opens after it is confirmed.
+      setRecoveryCode(res.data.recoveryCode)
     } catch (err) {
       setError((err as Error).message || 'Setup failed')
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleEnter = async (): Promise<void> => {
+    await refreshModules()
+    await refreshAuth()
+    setRecoveryCode(null)
+    notifications.show({
+      title: t('common.success'),
+      message: t('wizard.title'),
+      color: 'green'
+    })
+    navigate('/')
+  }
+
+  if (recoveryCode) {
+    return (
+      <div style={{ maxWidth: 760, margin: '40px auto', padding: '0 20px' }}>
+        <Card withBorder shadow="md" p="xl" radius="md">
+          <Title order={2} c="blue" mb="md">
+            {t('recovery.setupTitle')}
+          </Title>
+          <RecoveryCodeDisplay
+            code={recoveryCode}
+            shopName={shopName.trim()}
+            acknowledged={acknowledged}
+            onAcknowledged={setAcknowledged}
+          />
+          <Group justify="flex-end" mt="xl">
+            <Button color="green" disabled={!acknowledged} onClick={handleEnter}>
+              {t('wizard.finish')}
+            </Button>
+          </Group>
+        </Card>
+      </div>
+    )
   }
 
   return (

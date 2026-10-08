@@ -20,8 +20,15 @@ export function hashPin(pin: string): string {
   if (!/^\d{4,6}$/.test(pin)) {
     throw new Error('PIN must be between 4 and 6 digits')
   }
+  return hashSecret(pin)
+}
+
+/**
+ * scrypt + random salt for any secret string (PINs, recovery codes). Format: salt:hash.
+ */
+export function hashSecret(secret: string): string {
   const salt = crypto.randomBytes(16).toString('hex')
-  const derivedKey = crypto.scryptSync(pin, salt, 64)
+  const derivedKey = crypto.scryptSync(secret, salt, 64)
   return `${salt}:${derivedKey.toString('hex')}`
 }
 
@@ -29,12 +36,16 @@ export function hashPin(pin: string): string {
  * Verifies a PIN against a stored salt:hash string using timingSafeEqual.
  */
 export function verifyPinHash(pin: string, storedHash: string): boolean {
+  return verifySecretHash(pin, storedHash)
+}
+
+export function verifySecretHash(secret: string, storedHash: string): boolean {
   if (!storedHash || !storedHash.includes(':')) {
     return false
   }
   const [salt, keyHex] = storedHash.split(':')
   const storedBuffer = Buffer.from(keyHex, 'hex')
-  const derivedBuffer = crypto.scryptSync(pin, salt, 64)
+  const derivedBuffer = crypto.scryptSync(secret, salt, 64)
   if (storedBuffer.length !== derivedBuffer.length) {
     return false
   }

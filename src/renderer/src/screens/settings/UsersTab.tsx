@@ -73,6 +73,40 @@ export const UsersTab: React.FC<UsersTabProps> = ({
     }
   }
 
+  const [resetTarget, setResetTarget] = useState<User | null>(null)
+  const [resetPin, setResetPin] = useState('')
+  const [resetPin2, setResetPin2] = useState('')
+  const [resetError, setResetError] = useState<string | null>(null)
+  const [resetting, setResetting] = useState(false)
+
+  const closeReset = (): void => {
+    setResetTarget(null)
+    setResetPin('')
+    setResetPin2('')
+    setResetError(null)
+  }
+
+  const handleResetPin = async (): Promise<void> => {
+    if (!resetTarget) return
+    setResetError(null)
+    if (!/^\d{4,6}$/.test(resetPin)) return setResetError(t('wizard.pinLengthError'))
+    if (resetPin !== resetPin2) return setResetError(t('wizard.pinMismatch'))
+    setResetting(true)
+    try {
+      const res = await window.api.users.resetPin({ userId: resetTarget.id, newPin: resetPin })
+      if (res.ok) {
+        notifications.show({ title: t('common.success'), message: t('pin.resetDone'), color: 'teal' })
+        closeReset()
+      } else {
+        setResetError(res.error.message)
+      }
+    } catch (err) {
+      setResetError((err as Error).message)
+    } finally {
+      setResetting(false)
+    }
+  }
+
   const handleDeactivateUser = async (targetId: number): Promise<void> => {
     try {
       const res = await window.api.users.deactivate(targetId)
@@ -125,20 +159,55 @@ export const UsersTab: React.FC<UsersTabProps> = ({
               </Table.Td>
               <Table.Td style={{ textAlign: 'right' }}>
                 {u.active === 1 && u.id !== currentUserId && (
-                  <Button
-                    size="xs"
-                    color="red"
-                    variant="light"
-                    onClick={() => handleDeactivateUser(u.id)}
-                  >
-                    {t('settings.deactivate')}
-                  </Button>
+                  <Group gap="xs" justify="flex-end">
+                    <Button size="xs" variant="light" onClick={() => setResetTarget(u)}>
+                      {t('pin.resetButton')}
+                    </Button>
+                    <Button
+                      size="xs"
+                      color="red"
+                      variant="light"
+                      onClick={() => handleDeactivateUser(u.id)}
+                    >
+                      {t('settings.deactivate')}
+                    </Button>
+                  </Group>
                 )}
               </Table.Td>
             </Table.Tr>
           ))}
         </Table.Tbody>
       </Table>
+
+      <Modal
+        opened={resetTarget !== null}
+        onClose={closeReset}
+        title={`${t('pin.resetButton')}: ${resetTarget?.name ?? ''}`}
+      >
+        <Stack gap="md">
+          {resetError && <Alert color="red">{resetError}</Alert>}
+          <PasswordInput
+            label={t('pin.new')}
+            maxLength={6}
+            value={resetPin}
+            onChange={(e) => setResetPin(e.currentTarget.value.replace(/\D/g, ''))}
+          />
+          <PasswordInput
+            label={t('pin.confirm')}
+            maxLength={6}
+            value={resetPin2}
+            onChange={(e) => setResetPin2(e.currentTarget.value.replace(/\D/g, ''))}
+          />
+          <Group justify="flex-end">
+            <Button variant="default" onClick={closeReset}>
+              {t('settings.cancel')}
+            </Button>
+            <Button onClick={handleResetPin} loading={resetting} disabled={!resetPin || !resetPin2}>
+              {t('pin.resetButton')}
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
 
       <Modal
         opened={userModalOpen}

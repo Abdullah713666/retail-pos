@@ -4,6 +4,7 @@ import type {
   CreateUserInput,
   LoginInput,
   SetupCompleteInput,
+  ChangePinInput,
   CreateItemInput,
   UpdateItemInput,
   ItemFilter,
@@ -68,9 +69,18 @@ const api: IpcApi = {
   users: {
     list: () => ipcRenderer.invoke('users:list'),
     create: (input: CreateUserInput) => ipcRenderer.invoke('users:create', input),
-    deactivate: (id: number) => ipcRenderer.invoke('users:deactivate', id)
+    deactivate: (id: number) => ipcRenderer.invoke('users:deactivate', id),
+    changeOwnPin: (input: ChangePinInput) => ipcRenderer.invoke('users:changeOwnPin', input),
+    resetPin: (input: { userId: number; newPin: string }) =>
+      ipcRenderer.invoke('users:resetPin', input)
+  },
+  recovery: {
+    status: () => ipcRenderer.invoke('recovery:status'),
+    regenerate: (input: { pin: string }) => ipcRenderer.invoke('recovery:regenerate', input)
   },
   auth: {
+    recoverOwnerPin: (input: { code: string; newPin: string }) =>
+      ipcRenderer.invoke('auth:recoverOwnerPin', input),
     login: (input: LoginInput) => ipcRenderer.invoke('auth:login', input),
     logout: () => ipcRenderer.invoke('auth:logout'),
     getCurrentUser: () => ipcRenderer.invoke('auth:getCurrentUser'),
