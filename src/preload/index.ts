@@ -14,7 +14,12 @@ import type {
   RecordPaymentInput,
   CreatePurchaseInput,
   PurchaseFilter,
-  PurchaseReturnInput
+  PurchaseReturnInput,
+  SaleDraftInput,
+  CompleteSaleInput,
+  SaleFilter,
+  SaleReturnInput,
+  VoidSaleInput
 } from '../shared/types'
 
 const api: IpcApi = {
@@ -82,6 +87,16 @@ const api: IpcApi = {
     get: (id: number) => ipcRenderer.invoke('purchases:get', id),
     create: (input: CreatePurchaseInput) => ipcRenderer.invoke('purchases:create', input),
     return: (input: PurchaseReturnInput) => ipcRenderer.invoke('purchases:return', input)
+  },
+  sales: {
+    complete: (input: CompleteSaleInput) => ipcRenderer.invoke('sales:complete', input),
+    hold: (input: SaleDraftInput) => ipcRenderer.invoke('sales:hold', input),
+    discardHeld: (id: number) => ipcRenderer.invoke('sales:discardHeld', id),
+    list: (filter: SaleFilter) => ipcRenderer.invoke('sales:list', filter),
+    get: (id: number) => ipcRenderer.invoke('sales:get', id),
+    getByInvoice: (invoiceNo: string) => ipcRenderer.invoke('sales:getByInvoice', invoiceNo),
+    return: (input: SaleReturnInput) => ipcRenderer.invoke('sales:return', input),
+    void: (input: VoidSaleInput) => ipcRenderer.invoke('sales:void', input)
   }
 }
 

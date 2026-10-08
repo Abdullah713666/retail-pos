@@ -26,6 +26,7 @@ import {
 } from '../core/auth/service'
 import { registerItemsIpc } from '../core/items/ipc'
 import { registerPurchasesIpc } from '../core/purchases/ipc'
+import { registerSalesIpc } from '../core/sales/ipc'
 import { registerPartiesIpc } from '../core/parties/ipc'
 import { registerLedgerIpc } from '../core/ledger/ipc'
 
@@ -184,4 +185,7 @@ export function registerIpcHandlers(): void {
 
   // Purchases (stock in)
   registerPurchasesIpc()
+
+  // Sales (sale screen, held bills, returns, void)
+  registerSalesIpc()
 }

@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3'
 import coreMigration001 from './migrations/001_core.sql?raw'
 import coreMigration002 from './migrations/002_purchases.sql?raw'
+import coreMigration003 from './migrations/003_sales.sql?raw'
 import { nowLocal } from '@shared/dates'
 
 export interface Migration {
@@ -16,6 +17,10 @@ export const CORE_MIGRATIONS: Migration[] = [
   {
     id: '002_purchases',
     sql: coreMigration002
+  },
+  {
+    id: '003_sales',
+    sql: coreMigration003
   }
 ]
 

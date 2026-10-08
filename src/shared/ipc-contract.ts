@@ -27,7 +27,16 @@ import type {
   PurchaseFilter,
   PurchaseListResult,
   PurchaseReturnInput,
-  PurchaseReturnResult
+  PurchaseReturnResult,
+  Sale,
+  SaleDraftInput,
+  CompleteSaleInput,
+  CompleteSaleResult,
+  SaleFilter,
+  SaleSummary,
+  SaleReturnInput,
+  SaleReturnResult,
+  VoidSaleInput
 } from './types'
 
 export interface MigrationStatus {
@@ -100,5 +109,15 @@ export interface IpcApi {
     get: (id: number) => Promise<Result<PurchaseDetail>>
     create: (input: CreatePurchaseInput) => Promise<Result<PurchaseDetail>>
     return: (input: PurchaseReturnInput) => Promise<Result<PurchaseReturnResult>>
+  }
+  sales: {
+    complete: (input: CompleteSaleInput) => Promise<Result<CompleteSaleResult>>
+    hold: (input: SaleDraftInput) => Promise<Result<Sale>>
+    discardHeld: (id: number) => Promise<Result<void>>
+    list: (filter: SaleFilter) => Promise<Result<SaleSummary[]>>
+    get: (id: number) => Promise<Result<Sale>>
+    getByInvoice: (invoiceNo: string) => Promise<Result<Sale>>
+    return: (input: SaleReturnInput) => Promise<Result<SaleReturnResult>>
+    void: (input: VoidSaleInput) => Promise<Result<void>>
   }
 }

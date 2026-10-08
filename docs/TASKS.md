@@ -56,12 +56,12 @@ Mark items `[x]` when done. Each milestone ends with: typecheck + lint + tests p
 - **Done when:** stock and supplier balance update correctly (tests).
 
 ## M7 — Sale screen (the most important screen)
-- [ ] Layout per ARCHITECTURE §8: search bar, line grid, totals panel, shortcut bar
-- [ ] Add by search or barcode scan; change unit (F2); qty edit; line/bill discount (F4)
-- [ ] Customer select (F3) for credit sale; payment dialog (F8): cash, credit, mixed; change due
-- [ ] Hold/recall bills (F5/F6), persisted
-- [ ] Sale service: recalculates totals, allocates stock via allocator, posts movements + ledger, invoice number — one transaction
-- [ ] Sale return / void (manager PIN), audit log
+- [x] Layout per ARCHITECTURE §8: search bar, line grid, totals panel, shortcut bar
+- [x] Add by search or barcode scan; change unit (F2); qty edit; line/bill discount (F4)
+- [x] Customer select (F3) for credit sale; payment dialog (F8): cash, credit, mixed; change due
+- [x] Hold/recall bills (F5/F6), persisted
+- [x] Sale service: recalculates totals, allocates stock via allocator, posts movements + ledger, invoice number — one transaction
+- [x] Sale return / void (manager PIN), audit log
 - **Done when:** a full sale can be done with keyboard only in < 15 s; tests cover totals, stock, ledger, void.
 
 ## M8 — Printing

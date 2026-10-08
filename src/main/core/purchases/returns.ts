@@ -13,7 +13,7 @@ import type { PurchaseReturnInput, PurchaseReturnResult } from '@shared/types'
 import { logAudit } from '../audit/service'
 import { postEntry } from '../ledger/service'
 import { postMovement } from '../stock/service'
-import { abort, must, runAtomic } from './tx'
+import { abort, must, runAtomic } from '../../db/tx'
 
 interface LineRow {
   id: number
