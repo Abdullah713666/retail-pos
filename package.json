@@ -13,7 +13,7 @@
     "lint": "eslint src --ext .ts,.tsx",
     "test": "vitest run",
     "build:linux": "electron-vite build && electron-builder --linux",
-    "build:win": "electron-vite build && electron-builder --win"
+    "build:win": "electron-vite build && electron-builder --win --x64"
   },
   "dependencies": {
     "@mantine/core": "^7.17.0",
@@ -53,12 +53,19 @@
   "build": {
     "appId": "pk.retailpos.app",
     "productName": "Retail POS",
+    "copyright": "Copyright © Abdullah",
     "directories": {
       "output": "release"
     },
     "files": [
       "out/**/*"
     ],
+    "npmRebuild": true,
+    "asar": true,
+    "asarUnpack": [
+      "**/node_modules/better-sqlite3/**/*.node"
+    ],
+    "icon": "resources/icon.png",
     "linux": {
       "target": [
         "AppImage"
@@ -66,8 +73,23 @@
     },
     "win": {
       "target": [
-        "nsis"
-      ]
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "resources/icon.png",
+      "artifactName": "Retail-POS-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false,
+      "perMachine": false
     }
   }
 }

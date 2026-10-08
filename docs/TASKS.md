@@ -90,6 +90,6 @@ Mark items `[x]` when done. Each milestone ends with: typecheck + lint + tests p
 - [x] Dashboard widget: near-expiry count, want-book count
 
 ## M13 — Windows release
-- [ ] GitHub Actions workflow building NSIS installer on windows-latest
-- [ ] App icon, name, version; installer creates desktop shortcut
+- [x] GitHub Actions workflow building NSIS installer on windows-latest
+- [x] App icon, name, version; installer creates desktop shortcut
 - [ ] Owner tests install on a Windows 10 PC: install, wizard, sale, print, backup, uninstall/reinstall keeps data

@@ -419,3 +419,14 @@ Newest entry at the top. Gemini adds a **Build** entry after each milestone; Cla
 
 ### [Review] M12 — 2026-10-08
 - Verdict: **approved**. FEFO inside the module (earliest expiry, null last, expired only with owner PIN + audit per lot), want-book via onSaleCompleted inside the sale transaction with no duplicates, core works with module disabled. Typecheck + 238 tests pass. Accepted: want qty = max(2×reorder − stock, 1); track_lots not forced server-side. Later: "searched item out of stock" auto want-book entry.
+
+### [Build] M13 — Windows release — 2026-10-08
+- Workflow `.github/workflows/build-windows.yml`: triggers on tag `v*` and manual run only; windows-latest, Node 22, `npm ci` (postinstall runs `electron-builder install-app-deps`, rebuilding better-sqlite3 for Electron), typecheck + tests, `npm run build:win`, uploads `release/*.exe`. Lint was dropped from CI per the task (still run locally). NOT code-signed (SmartScreen warning expected).
+- `package.json` build config: appId `pk.retailpos.app`, productName `Retail POS` (kept), icon `resources/icon.png` (256x256, big enough for Windows), `npmRebuild: true`, `asarUnpack` for better-sqlite3 `.node`, win target nsis x64 only, installer name `Retail-POS-Setup-<version>.exe`. NSIS: oneClick false, choose install folder, desktop + start menu shortcuts, `deleteAppDataOnUninstall: false`, perMachine false. `build:win` now passes `--x64`.
+- Data check: DB is `app.getPath('userData')/data/shop.db`, backups `userData/backups`; nothing is stored in the install folder, so reinstall keeps data. No code change needed.
+- `docs/RELEASE.md` added (GitHub repo, push, tag, download, Windows test checklist, SmartScreen note).
+- Checks: `npm run build` OK. `electron-builder --win --dir` fails on Linux (cannot cross-compile better-sqlite3), so the real build is untested until the first Actions run. Typecheck, lint, tests: see final run.
+- Owner to do: create repo, push, tag v0.1.0, download installer, run the Windows checklist (M13 third box left unticked).
+
+### [Review] M13 — 2026-10-08
+- Verdict: **approved (code)**. NSIS x64, data in userData (reinstall keeps data), better-sqlite3 unpacked from asar. Reviewer added `npm rebuild better-sqlite3` before tests in CI (postinstall builds it for Electron, which breaks vitest under Node). Not yet run on GitHub — first tag push is the real test. Owner: follow docs/RELEASE.md and run the Windows checklist.
