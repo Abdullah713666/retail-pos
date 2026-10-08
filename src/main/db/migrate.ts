@@ -3,6 +3,7 @@ import coreMigration001 from './migrations/001_core.sql?raw'
 import coreMigration002 from './migrations/002_purchases.sql?raw'
 import coreMigration003 from './migrations/003_sales.sql?raw'
 import coreMigration004 from './migrations/004_cash.sql?raw'
+import coreMigration005 from './migrations/005_reports.sql?raw'
 import { nowLocal } from '@shared/dates'
 
 export interface Migration {
@@ -26,6 +27,10 @@ export const CORE_MIGRATIONS: Migration[] = [
   {
     id: '004_cash',
     sql: coreMigration004
+  },
+  {
+    id: '005_reports',
+    sql: coreMigration005
   }
 ]
 

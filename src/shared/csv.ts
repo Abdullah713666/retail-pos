@@ -245,3 +245,18 @@ export function parseItemsCsv(
     errors
   }
 }
+
+/** Escapes one CSV field: quotes when it has a comma, quote or newline. Numbers are written as-is. */
+export function csvField(value: string | number): string {
+  // Text starting with = + - @ would run as a formula when opened in Excel, so it gets a leading apostrophe.
+  const text = typeof value === 'number' ? String(value) : /^[=+\-@]/.test(value) ? `'${value}` : value
+  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text
+}
+
+/**
+ * Builds CSV text for a table. Starts with a UTF-8 BOM so Excel on Windows shows Urdu correctly,
+ * and uses CRLF line endings like Excel does.
+ */
+export function toCsv(rows: Array<Array<string | number>>): string {
+  return '\uFEFF' + rows.map((r) => r.map(csvField).join(',')).join('\r\n') + '\r\n'
+}

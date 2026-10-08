@@ -46,7 +46,17 @@ import type {
   ZReport,
   PrinterInfo,
   PrintSaleInput,
-  TestPrintInput
+  TestPrintInput,
+  SalesReportInput,
+  SalesReport,
+  StockValueReport,
+  LowStockRow,
+  BalanceReport,
+  SaveCsvInput,
+  SaveCsvResult,
+  BackupStatus,
+  BackupNowResult,
+  RestoreInput
 } from './types'
 
 export interface MigrationStatus {
@@ -144,5 +154,23 @@ export interface IpcApi {
     testPrint: (input: TestPrintInput) => Promise<Result<void>>
     printSale: (input: PrintSaleInput) => Promise<Result<void>>
     printZReport: (shiftId: number) => Promise<Result<void>>
+  }
+  reports: {
+    sales: (input: SalesReportInput) => Promise<Result<SalesReport>>
+    stockValue: () => Promise<Result<StockValueReport>>
+    lowStock: () => Promise<Result<LowStockRow[]>>
+    receivables: () => Promise<Result<BalanceReport>>
+    payables: () => Promise<Result<BalanceReport>>
+    saveCsv: (input: SaveCsvInput) => Promise<Result<SaveCsvResult>>
+  }
+  backup: {
+    status: () => Promise<Result<BackupStatus>>
+    now: () => Promise<Result<BackupNowResult>>
+    chooseExtraDir: () => Promise<Result<string | null>>
+    clearExtraDir: () => Promise<Result<void>>
+    /** Opens a file dialog and validates the chosen file; null when cancelled. */
+    pickFile: () => Promise<Result<{ fileName: string } | null>>
+    /** Restores a listed backup (name) or the file picked with pickFile; the app then restarts. */
+    restore: (input: RestoreInput) => Promise<Result<void>>
   }
 }

@@ -36,7 +36,10 @@ export const AppLayout: React.FC = () => {
     { label: t('nav.parties'), path: '/parties', icon: <IconUsers size={20} stroke={1.5} /> },
     { label: t('nav.purchases'), path: '/purchases', icon: <IconTruckDelivery size={20} stroke={1.5} /> },
     { label: t('nav.cash'), path: '/cash', icon: <IconCash size={20} stroke={1.5} /> },
-    { label: t('nav.reports'), path: '/reports', icon: <IconReportAnalytics size={20} stroke={1.5} /> }
+    // Reports show profit and cost, so they are for the owner only.
+    ...(user?.role === 'owner'
+      ? [{ label: t('nav.reports'), path: '/reports', icon: <IconReportAnalytics size={20} stroke={1.5} /> }]
+      : [])
   ]
 
   const moduleNavItems = activeUiModules.flatMap((mod) =>

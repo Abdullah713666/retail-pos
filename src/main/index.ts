@@ -4,6 +4,7 @@ import { registerIpcHandlers, setMigrationStatus } from './ipc/register'
 import { getDb, closeDb } from './db/connection'
 import { runMigrations } from './db/migrate'
 import { initModules } from './modules/registry'
+import { runCloseBackup, runStartupBackup } from './core/backup/ipc'
 
 function initDatabase(): void {
   try {
@@ -55,6 +56,7 @@ app.whenReady().then(() => {
   initDatabase()
   registerIpcHandlers()
   createWindow()
+  setTimeout(() => void runStartupBackup(), 5000)
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -63,9 +65,16 @@ app.whenReady().then(() => {
   })
 })
 
+let closing = false
 app.on('window-all-closed', () => {
-  closeDb()
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
+  if (closing) return
+  closing = true
+  // Backup on close, but never hold the app open for more than a few seconds.
+  const timeout = new Promise<void>((resolve) => setTimeout(resolve, 8000))
+  void Promise.race([runCloseBackup(), timeout]).finally(() => {
+    closeDb()
+    if (process.platform !== 'darwin') {
+      app.quit()
+    }
+  })
 })

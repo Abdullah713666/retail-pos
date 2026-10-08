@@ -31,6 +31,8 @@ import { registerPartiesIpc } from '../core/parties/ipc'
 import { registerLedgerIpc } from '../core/ledger/ipc'
 import { registerCashIpc } from '../core/cash/ipc'
 import { registerPrintingIpc } from '../core/printing/ipc'
+import { registerReportsIpc } from '../core/reports/ipc'
+import { registerBackupIpc } from '../core/backup/ipc'
 
 let currentMigrationStatus: MigrationStatus = { success: true, error: null }
 
@@ -194,4 +196,8 @@ export function registerIpcHandlers(): void {
   // Cash shifts + day end, and printing
   registerCashIpc()
   registerPrintingIpc()
+
+  // Reports (owner only) and backup / restore (owner only)
+  registerReportsIpc()
+  registerBackupIpc()
 }

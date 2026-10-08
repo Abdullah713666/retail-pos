@@ -75,11 +75,11 @@ Mark items `[x]` when done. Each milestone ends with: typecheck + lint + tests p
 - **Done when:** expected cash = opening + cash sales + cash in − cash out − expenses (tests).
 
 ## M10 — Reports
-- [ ] Sales by day/item/user, profit (sale − cost), stock value, low stock, customer receivables, supplier payables
-- [ ] Date range filter, print, export CSV
+- [x] Sales by day/item/user, profit (sale − cost), stock value, low stock, customer receivables, supplier payables
+- [x] Date range filter, print, export CSV
 
 ## M11 — Backup & restore
-- [ ] Auto backup (§10), backup now, extra folder, restore (owner only)
+- [x] Auto backup (§10), backup now, extra folder, restore (owner only)
 
 ## M12 — Pharmacy module (full)
 - [ ] `pharmacy_item_info` fields on item form; lots + expiry required on purchase

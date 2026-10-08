@@ -18,6 +18,7 @@ import { useAuth } from '../context/AuthContext'
 import { useModules } from '../modules'
 import { changeAppLanguage } from '../i18n'
 import { UsersTab } from './settings/UsersTab'
+import { BackupTab } from './settings/BackupTab'
 import { PrinterFields } from '../components/PrinterFields'
 import type { PrintMode, User } from '@shared/types'
 
@@ -155,6 +156,7 @@ export const SettingsScreen: React.FC = () => {
             <Tabs.Tab value="language">{t('settings.language')}</Tabs.Tab>
             <Tabs.Tab value="modules">{t('settings.modules')}</Tabs.Tab>
             <Tabs.Tab value="users">{t('settings.users')}</Tabs.Tab>
+            <Tabs.Tab value="backup">{t('settings.backup')}</Tabs.Tab>
           </Tabs.List>
 
           {/* Shop Information */}
@@ -267,6 +269,11 @@ export const SettingsScreen: React.FC = () => {
               currentUserId={user.id}
               onUserChanged={loadSettingsAndUsers}
             />
+          </Tabs.Panel>
+
+          {/* Backup & restore (owner only: this whole screen is) */}
+          <Tabs.Panel value="backup">
+            <BackupTab />
           </Tabs.Panel>
         </Tabs>
       </Card>

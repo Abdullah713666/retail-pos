@@ -353,3 +353,42 @@ Newest entry at the top. Gemini adds a **Build** entry after each milestone; Cla
 
 ### [Review] M8 + M9 — 2026-10-08
 - Verdict: **approved**. Printing is a separate call after the sale commits, never throws, hidden sandboxed window with escaped HTML (reviewer set `javascript: false`). One-open-shift enforced by unique partial index; sales blocked without a shift; expected cash covers sales, refunds, voids, cash in/out, expenses, supplier payments and khata receipts. Typecheck + 194 tests pass. Owner to test: real 58/80 mm printer on Windows incl. Urdu text; khata payments are treated as cash for now.
+
+### [Build] M10 — Reports — 2026-10-08
+- Summary: Owner-only Reports screen with 5 tabs: Sales & profit (group by day / item / user, date range with Today / This month shortcuts), Stock value, Low stock, Customers owe (receivables), We owe suppliers (payables). Every table has Print (`window.print`, `.print-area`) and Export CSV (renderer sends the table, the save dialog and file write happen in main; UTF-8 BOM so Excel shows Urdu; text starting with `= + - @` gets a leading apostrophe against formula injection). `src/shared/csv.ts` got `toCsv`/`csvField`. Reports menu item is hidden for non-owners and every `reports:*` IPC checks `owner`.
+- Profit cost source: migration `005_reports.sql` adds `sale_lines.cost_total` (paisa, frozen when the sale is completed). The sale service fills it: stock-tracked lines = SUM(chunk qty x `sale_line_lots.cost_price`) (lot cost, else item cost at that moment); lines of items without stock tracking = `qty_base x items.cost_price` at sale time (these have no lot chunks, so a snapshot column was needed). The migration backfills older rows from the chunks, else the item's current cost. Profit = SUM(`net_total`) - returns (`sale_return_lines.line_total`, by return date) - cost (`cost_total` minus `cost_total x returned qty / sold qty` for returned goods). Voided sales are excluded. Returns count for the day and the user who made the return.
+- Stock value: lot-tracked items valued lot by lot (lot cost), plus any lot-less remainder at item cost; others `stock_cache x cost_price`; only active, stock-tracked, qty > 0. Low stock: active, `track_stock`, `stock_cache <= reorder_level`. Receivables / payables from `SUM(debit) - SUM(credit)` (customer > 0 owes us; supplier < 0 we owe), only non-zero in the "right" direction.
+- Performance: one grouped query for sales and one for returns per report (merged in JS), no per-row queries. New indexes: `sales(created_at)`, `sale_returns(created_at)`, `sale_lines(item_id)`, `party_ledger(party_id)`.
+- Files: src/main/db/migrations/005_reports.sql, src/main/db/migrate.ts (+test), src/main/core/sales/service.ts, src/main/core/reports/{service,ipc}.ts (+service.test.ts), src/shared/csv.ts (+test), src/shared/types/reports.ts, ipc-contract, preload, register.ts, src/renderer/src/screens/ReportsScreen.tsx, screens/reports/{ReportTable,SalesReportTab,StockAndBalanceTabs}.tsx, app/layout.tsx, i18n en/ur
+- Checks: typecheck ✅ lint ✅ tests ✅ (218 tests, 24 new across M10 + M11: 9 reports, 2 CSV writer, 1 migration backfill). `npm run build` ✅. NOT clicked through by hand (no interactive session).
+- Manual test steps:
+  1. Make a few sales (one with a discount, one on khata), a return and a void; buy stock on credit from a supplier.
+  2. Reports > Sales & profit: switch Day / Item / User, change dates; check sales - returns - cost = profit.
+  3. Stock value, Low stock, Customers owe, We owe suppliers: compare with Items and Parties screens.
+  4. Print (Ctrl+P preview shows only the table) and Export CSV; open the CSV in Excel, Urdu names should show.
+  5. Log in as manager/cashier: no Reports menu item.
+- Open questions / deviations:
+  - Returns are reported on the day the return was made (not the sale day), so a day can show negative profit.
+  - Sales before this migration whose item has no stock tracking use the item's CURRENT cost (old data had no snapshot).
+  - Report tables are not paginated (fine up to a few thousand items; revisit if a shop has far more).
+  - CSV headers are in the UI language at export time.
+
+### [Build] M11 — Backup & restore — 2026-10-08
+- Summary: Settings > Backup & Restore tab (owner only): last backup time, Backup now, optional extra folder (USB), list of saved backups with Restore, and Restore from file. Auto backup: once on the first launch of each day (5 s after start) and when the app closes (only if shop data changed since the last backup, so a busy day does not push daily history out of the "keep N" window). Keeps the last 30 (setting `backup_keep`, 1-365) in `userData/backups/shop-YYYYMMDD-HHmm.db` and in the extra folder. A failing extra folder (USB removed) never fails the main backup; the user gets an orange toast.
+- Backup safety: uses `db.backup()` (online API, never copies the live file); writes `<name>.tmp`, switches the copy to the rollback journal (single self-contained file, no -wal/-shm), runs `integrity_check`, fsyncs, then renames. Leftover `.tmp` files from a power cut are deleted on the next run. Same-minute backups get `-2`, `-3`... instead of overwriting.
+- Restore safety (owner only, `backup:pickFile` then `backup:restore`): the file dialog result is validated up front; restore accepts only a listed backup name or the file picked via the dialog (never a renderer-sent path). Steps: copy to `shop.db.restore.tmp` next to the live DB -> validate (SQLite header, `integrity_check`, required tables, every core migration id known to this app, so a DB from a newer app is refused) -> safety backup `backups/pre-restore-<date>-<time>-<n>.db` of the current data (last 5 kept, not part of daily rotation) -> close DB -> delete old -wal/-shm -> rename over `shop.db` -> reopen, run migrations + module init -> audit `backup_restored` (written into the restored DB, since the old one is gone; user id used only if that user exists there) -> `app.relaunch()` + exit. Any failure before the DB is closed leaves the current data untouched. The renderer shows a confirm dialog (i18n) before restore.
+- Files: src/main/core/backup/{service,ipc}.ts (+service.test.ts), src/main/index.ts (startup + close backup), register.ts, ipc-contract, preload, src/shared/types/reports.ts (backup types), src/renderer/src/screens/settings/BackupTab.tsx, SettingsScreen.tsx, i18n en/ur
+- Checks: typecheck ✅ lint ✅ tests ✅ (218 tests, 12 new in backup). `npm run build` ✅. NOT clicked through by hand; the relaunch and native file dialogs need a real run (`npm run dev`).
+- Manual test steps:
+  1. Settings > Backup & Restore > Backup now: a new file appears in the list; "Last backup" updates.
+  2. Choose an extra folder, Backup now: same file appears there. Unplug/rename the folder, Backup now: orange warning, main backup still saved.
+  3. Add an item, then Restore the earlier backup: confirm; app restarts without the item; `backups/` has a `pre-restore-*` file.
+  4. Restore from file... with a random .db or .txt: clear red error, nothing changes.
+  5. Close the app after a sale, reopen: a new backup was made on close.
+- Open questions / deviations:
+  - Validation of module migration ids (`pharmacy/...`) is not checked against the installed modules; only core migrations are compared to this app's list.
+  - Restore keeps the same device; the shop's `userData` path is used as-is (no cross-PC path handling needed).
+  - If the app is killed during the 8 s close-backup window the close backup is simply skipped (the daily one still exists).
+
+### [Review] M10 + M11 — 2026-10-08
+- Verdict: **approved**. Profit uses cost frozen on the sale line (`cost_total`, migration 005, lot-chunk cost). Voids excluded, returns subtracted. Backups use `db.backup()` → tmp → integrity check → fsync → rename. Restore validates a private copy, takes a safety backup, removes old -wal/-shm, swaps and migrates. Typecheck + 218 tests pass. Owner to test: backup now, restore + relaunch on Windows.

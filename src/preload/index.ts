@@ -24,7 +24,10 @@ import type {
   CashEntryInput,
   CloseShiftInput,
   PrintSaleInput,
-  TestPrintInput
+  TestPrintInput,
+  SalesReportInput,
+  SaveCsvInput,
+  RestoreInput
 } from '../shared/types'
 
 const api: IpcApi = {
@@ -117,6 +120,22 @@ const api: IpcApi = {
     testPrint: (input: TestPrintInput) => ipcRenderer.invoke('printing:testPrint', input),
     printSale: (input: PrintSaleInput) => ipcRenderer.invoke('printing:printSale', input),
     printZReport: (shiftId: number) => ipcRenderer.invoke('printing:printZReport', shiftId)
+  },
+  reports: {
+    sales: (input: SalesReportInput) => ipcRenderer.invoke('reports:sales', input),
+    stockValue: () => ipcRenderer.invoke('reports:stockValue'),
+    lowStock: () => ipcRenderer.invoke('reports:lowStock'),
+    receivables: () => ipcRenderer.invoke('reports:receivables'),
+    payables: () => ipcRenderer.invoke('reports:payables'),
+    saveCsv: (input: SaveCsvInput) => ipcRenderer.invoke('reports:saveCsv', input)
+  },
+  backup: {
+    status: () => ipcRenderer.invoke('backup:status'),
+    now: () => ipcRenderer.invoke('backup:now'),
+    chooseExtraDir: () => ipcRenderer.invoke('backup:chooseExtraDir'),
+    clearExtraDir: () => ipcRenderer.invoke('backup:clearExtraDir'),
+    pickFile: () => ipcRenderer.invoke('backup:pickFile'),
+    restore: (input: RestoreInput) => ipcRenderer.invoke('backup:restore', input)
   }
 }
 

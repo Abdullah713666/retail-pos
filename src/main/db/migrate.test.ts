@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { createTestDb } from './test-helper'
-import { runMigrations, applyMigrations, getAppliedMigrations } from './migrate'
 import { openDb } from './connection'
+import { runMigrations, applyMigrations, getAppliedMigrations, CORE_MIGRATIONS } from './migrate'
 
 describe('database migrations', () => {
   it('applies core migrations to an empty in-memory database', () => {
@@ -133,5 +133,23 @@ describe('database migrations', () => {
     expect(tableCheck).toBeUndefined()
 
     db.close()
+  })
+
+  it('005 fills sale_lines.cost_total for sales that already existed (lot chunks, else item cost)', () => {
+    const db = openDb(':memory:')
+    applyMigrations(db, CORE_MIGRATIONS.slice(0, 4))
+    db.exec(`
+      INSERT INTO users (id, name, username, pin_hash, role, active, created_at) VALUES (1, 'o', 'o', 'x', 'owner', 1, 'now');
+      INSERT INTO items (id, name, search_text, base_unit, sale_price, cost_price, created_at, updated_at)
+        VALUES (1, 'A', 'a', 'pc', 500, 300, 'now', 'now'), (2, 'B', 'b', 'pc', 500, 200, 'now', 'now');
+      INSERT INTO sales (id, invoice_no, user_id, status, subtotal, total, created_at) VALUES (1, 'INV-1', 1, 'completed', 0, 0, 'now');
+      INSERT INTO sale_lines (id, sale_id, item_id, unit_name, unit_factor, qty, qty_base, unit_price, line_total)
+        VALUES (1, 1, 1, 'pc', 1, 5, 5, 500, 2500), (2, 1, 2, 'pc', 1, 4, 4, 500, 2000);
+      INSERT INTO sale_line_lots (sale_line_id, lot_id, qty_base, cost_price) VALUES (1, NULL, 2, 100), (1, NULL, 3, 110);
+    `)
+    applyMigrations(db, CORE_MIGRATIONS)
+    const cost = (id: number): number => (db.prepare('SELECT cost_total AS c FROM sale_lines WHERE id = ?').get(id) as { c: number }).c
+    expect(cost(1)).toBe(2 * 100 + 3 * 110)
+    expect(cost(2)).toBe(4 * 200)
   })
 })

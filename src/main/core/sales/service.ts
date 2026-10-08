@@ -142,8 +142,11 @@ function takeStock(
   allowNegative: boolean,
   userId: number
 ): void {
+  const setCost = db.prepare('UPDATE sale_lines SET cost_total = ? WHERE id = ?')
   if (!l.item.track_stock) {
-    insertLine(db, saleId, l, null)
+    const lineId = insertLine(db, saleId, l, null)
+    const c = db.prepare('SELECT cost_price FROM items WHERE id = ?').get(l.item.id) as { cost_price: number }
+    setCost.run(l.qtyBase * c.cost_price, lineId)
     return
   }
   const chunks = allocator.allocate(db, l.item.id, l.qtyBase).filter((c) => c.qtyBase > 0)
@@ -168,9 +171,12 @@ function takeStock(
   )
   const lotCost = db.prepare('SELECT cost_price FROM stock_lots WHERE id = ?')
   const itemCost = db.prepare('SELECT cost_price FROM items WHERE id = ?').get(l.item.id) as { cost_price: number }
+  let costTotal = 0
   for (const c of chunks) {
     const cost = c.lotId != null ? (lotCost.get(c.lotId) as { cost_price: number } | undefined) : undefined
-    addChunk.run(lineId, c.lotId, c.qtyBase, cost?.cost_price ?? itemCost.cost_price)
+    const unitCost = cost?.cost_price ?? itemCost.cost_price
+    addChunk.run(lineId, c.lotId, c.qtyBase, unitCost)
+    costTotal += c.qtyBase * unitCost
     const res = postMovement(db, {
       itemId: l.item.id,
       lotId: c.lotId,
@@ -187,6 +193,7 @@ function takeStock(
         : res.error.message)
     }
   }
+  setCost.run(costTotal, lineId)
 }
 
 export function holdSale(db: Database.Database, input: SaleDraftInput, userId: number): Result<Sale> {

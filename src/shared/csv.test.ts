@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseRawCsv, parseItemsCsv } from './csv'
+import { parseRawCsv, parseItemsCsv, toCsv } from './csv'
 
 describe('CSV Parser', () => {
   it('parses raw CSV with commas and quotes', () => {
@@ -61,5 +61,25 @@ Panadol,EXISTING1,Medicines,tablet,3.50,2.80,,`
     expect(res.errors).toHaveLength(1)
     expect(res.errors[0].field).toBe('barcode')
     expect(res.errors[0].message).toContain('already exists')
+  })
+})
+
+describe('CSV writer', () => {
+  it('starts with a BOM, escapes quotes, commas and newlines, and round-trips', () => {
+    const rows: Array<Array<string | number>> = [
+      ['name', 'amount'],
+      ['Panadol, "Extra"', 12.5],
+      ['line1\nline2', 0],
+      ['پنادول', 3]
+    ]
+    const text = toCsv(rows)
+    expect(text.charCodeAt(0)).toBe(0xfeff)
+    const back = parseRawCsv(text.slice(1))
+    expect(back).toEqual(rows.map((r) => r.map(String)))
+  })
+
+  it('neutralises spreadsheet formulas in text but not in numbers', () => {
+    const text = toCsv([['=SUM(A1)', -5]])
+    expect(text.slice(1)).toBe("'=SUM(A1),-5\r\n")
   })
 })
