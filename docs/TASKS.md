@@ -65,13 +65,13 @@ Mark items `[x]` when done. Each milestone ends with: typecheck + lint + tests p
 - **Done when:** a full sale can be done with keyboard only in < 15 s; tests cover totals, stock, ledger, void.
 
 ## M8 — Printing
-- [ ] Receipt templates 58 mm + 80 mm; printer selection + test print in Settings
-- [ ] Print after sale (setting: auto/ask/off), reprint F9; failures never break the sale
+- [x] Receipt templates 58 mm + 80 mm; printer selection + test print in Settings
+- [x] Print after sale (setting: auto/ask/off), reprint F9; failures never break the sale
 - **Done when:** prints correctly on a real thermal printer (owner tests on Windows).
 
 ## M9 — Cash shifts + day end
-- [ ] Open shift (opening cash), cash in/out/expense, close shift (count cash, show difference)
-- [ ] Day-end (Z) report printable
+- [x] Open shift (opening cash), cash in/out/expense, close shift (count cash, show difference)
+- [x] Day-end (Z) report printable
 - **Done when:** expected cash = opening + cash sales + cash in − cash out − expenses (tests).
 
 ## M10 — Reports

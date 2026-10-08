@@ -19,7 +19,12 @@ import type {
   CompleteSaleInput,
   SaleFilter,
   SaleReturnInput,
-  VoidSaleInput
+  VoidSaleInput,
+  OpenShiftInput,
+  CashEntryInput,
+  CloseShiftInput,
+  PrintSaleInput,
+  TestPrintInput
 } from '../shared/types'
 
 const api: IpcApi = {
@@ -97,6 +102,21 @@ const api: IpcApi = {
     getByInvoice: (invoiceNo: string) => ipcRenderer.invoke('sales:getByInvoice', invoiceNo),
     return: (input: SaleReturnInput) => ipcRenderer.invoke('sales:return', input),
     void: (input: VoidSaleInput) => ipcRenderer.invoke('sales:void', input)
+  },
+  cash: {
+    current: () => ipcRenderer.invoke('cash:current'),
+    open: (input: OpenShiftInput) => ipcRenderer.invoke('cash:open', input),
+    addEntry: (input: CashEntryInput) => ipcRenderer.invoke('cash:addEntry', input),
+    close: (input: CloseShiftInput) => ipcRenderer.invoke('cash:close', input),
+    detail: (shiftId: number) => ipcRenderer.invoke('cash:detail', shiftId),
+    list: (limit?: number) => ipcRenderer.invoke('cash:list', limit),
+    zReport: (shiftId: number) => ipcRenderer.invoke('cash:zReport', shiftId)
+  },
+  printing: {
+    listPrinters: () => ipcRenderer.invoke('printing:listPrinters'),
+    testPrint: (input: TestPrintInput) => ipcRenderer.invoke('printing:testPrint', input),
+    printSale: (input: PrintSaleInput) => ipcRenderer.invoke('printing:printSale', input),
+    printZReport: (shiftId: number) => ipcRenderer.invoke('printing:printZReport', shiftId)
   }
 }
 

@@ -181,3 +181,5 @@ export interface CsvImportResult {
 export * from './parties'
 export * from './purchases'
 export * from './sales'
+export * from './cash'
+export * from './printing'

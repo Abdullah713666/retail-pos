@@ -29,6 +29,8 @@ import { registerPurchasesIpc } from '../core/purchases/ipc'
 import { registerSalesIpc } from '../core/sales/ipc'
 import { registerPartiesIpc } from '../core/parties/ipc'
 import { registerLedgerIpc } from '../core/ledger/ipc'
+import { registerCashIpc } from '../core/cash/ipc'
+import { registerPrintingIpc } from '../core/printing/ipc'
 
 let currentMigrationStatus: MigrationStatus = { success: true, error: null }
 
@@ -188,4 +190,8 @@ export function registerIpcHandlers(): void {
 
   // Sales (sale screen, held bills, returns, void)
   registerSalesIpc()
+
+  // Cash shifts + day end, and printing
+  registerCashIpc()
+  registerPrintingIpc()
 }

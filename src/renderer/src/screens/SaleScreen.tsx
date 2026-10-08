@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { Button, Group, Paper, ScrollArea, Stack, Text } from '@mantine/core'
+import { Alert, Button, Group, Paper, ScrollArea, Stack, Text } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { useTranslation } from 'react-i18next'
-import type { CompleteSaleResult, Item } from '@shared/types'
+import type { CompleteSaleResult, Item, Shift } from '@shared/types'
 import { callApi } from '../lib/api'
+import { getPrintMode, printSaleSafe } from '../lib/print'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { useSaleCart } from './sale/useSaleCart'
 import { SaleItemSearch } from './sale/SaleItemSearch'
@@ -16,8 +17,9 @@ import { DiscountDialog, type DiscountValue } from './sale/DiscountDialog'
 import { UnitDialog } from './sale/UnitDialog'
 import { HeldDialog } from './sale/HeldDialog'
 import { InvoicesDialog } from './sale/InvoicesDialog'
+import { OpenShiftDialog } from './cash/OpenShiftDialog'
 
-type Dialog = null | 'pay' | 'customer' | 'discount' | 'unit' | 'held' | 'invoices' | 'clear'
+type Dialog = null | 'pay' | 'customer' | 'discount' | 'unit' | 'held' | 'invoices' | 'clear' | 'shift'
 
 export const SaleScreen: React.FC = () => {
   const { t } = useTranslation()
@@ -27,6 +29,8 @@ export const SaleScreen: React.FC = () => {
   const [dialog, setDialog] = useState<Dialog>(null)
   const [heldCount, setHeldCount] = useState(0)
   const [busy, setBusy] = useState(false)
+  const [shift, setShift] = useState<Shift | null | undefined>(undefined) // undefined = still loading
+  const lastSaleId = useRef<number | null>(null)
   const backToPay = useRef(false) // F3 pressed inside the payment dialog: come back to it
 
   const refreshHeld = useCallback(async () => {
@@ -34,10 +38,20 @@ export const SaleScreen: React.FC = () => {
     if (res.ok) setHeldCount(res.data.length)
   }, [])
 
+  const refreshShift = useCallback(async () => {
+    const res = await window.api.cash.current()
+    if (res.ok) {
+      setShift(res.data)
+      // No open shift: ask for one right away (selling is blocked until it exists).
+      if (res.data === null) setDialog((d) => d ?? 'shift')
+    }
+  }, [])
+
   useEffect(() => {
     void refreshHeld()
+    void refreshShift()
     searchRef.current?.focus()
-  }, [refreshHeld])
+  }, [refreshHeld, refreshShift])
 
   // Give the keyboard back to the search box whenever a dialog closes.
   useEffect(() => {
@@ -86,11 +100,27 @@ export const SaleScreen: React.FC = () => {
   const complete = async (paidCash: number, paidCredit: number): Promise<CompleteSaleResult | null> => {
     const res = await callApi(() => window.api.sales.complete({ ...sale.toDraft(), paidCash, paidCredit }))
     if (res) {
+      lastSaleId.current = res.sale.id
       sale.clear()
       void refreshHeld()
+      // The sale is already saved. Printing is separate and can only ever show a warning toast.
+      if ((await getPrintMode()) === 'auto') void printSaleSafe(res.sale.id, paidCash)
     }
     return res
   }
+
+  const reprintLast = useCallback(async () => {
+    let id = lastSaleId.current
+    if (id === null) {
+      const r = await window.api.sales.list({ status: 'completed', limit: 1 })
+      id = r.ok && r.data.length > 0 ? r.data[0].id : null
+    }
+    if (id === null) {
+      notifications.show({ color: 'orange', message: t('print.nothingToPrint') })
+      return
+    }
+    if (await printSaleSafe(id)) notifications.show({ color: 'green', message: t('print.sent') })
+  }, [t])
 
   const applyDiscount = (v: DiscountValue): void => {
     if (v.scope === 'line') sale.setLineDiscount(cart.selected, v.discount, v.bp)
@@ -108,7 +138,8 @@ export const SaleScreen: React.FC = () => {
         F5: () => void hold(),
         F6: () => setDialog('held'),
         F7: () => setDialog('invoices'),
-        F8: () => hasLines && setDialog('pay')
+        F8: () => hasLines && setDialog(shift ? 'pay' : 'shift'),
+        F9: () => void reprintLast()
       }
       const fn = map[e.key]
       if (fn) {
@@ -118,12 +149,20 @@ export const SaleScreen: React.FC = () => {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [dialog, hasLines, hold])
+  }, [dialog, hasLines, hold, shift, reprintLast])
 
   const selected = cart.lines[cart.selected] ?? null
 
   return (
     <div style={{ height: 'calc(100vh - 32px)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {shift === null && (
+        <Alert color="orange" py={6}>
+          <Group justify="space-between">
+            <Text size="sm">{t('sale.noShift')}</Text>
+            <Button size="xs" onClick={() => setDialog('shift')}>{t('cash.openShift')}</Button>
+          </Group>
+        </Alert>
+      )}
       <Group align="stretch" wrap="nowrap" gap="md" style={{ flex: 1, minHeight: 0 }}>
         <Stack gap="xs" style={{ flex: 1, minWidth: 0, minHeight: 0 }}>
           <SaleItemSearch
@@ -132,7 +171,7 @@ export const SaleScreen: React.FC = () => {
             onMoveLine={(d) => sale.select(cart.selected + d)}
             onQty={(d) => hasLines && sale.changeQty(cart.selected, d)}
             onRemove={() => hasLines && sale.removeLine(cart.selected)}
-            onEmptyEnter={() => hasLines && setDialog('pay')}
+            onEmptyEnter={() => hasLines && setDialog(shift ? 'pay' : 'shift')}
             onEmptyEscape={() => hasLines && setDialog('clear')}
           />
           <Paper withBorder radius="md" style={{ flex: 1, minHeight: 0 }}>
@@ -143,7 +182,7 @@ export const SaleScreen: React.FC = () => {
         </Stack>
         <Stack gap="xs" w={340}>
           <TotalsPanel cart={sale} heldCount={heldCount} />
-          <Button size="xl" disabled={!hasLines} onClick={() => setDialog('pay')}>
+          <Button size="xl" disabled={!hasLines} onClick={() => setDialog(shift ? 'pay' : 'shift')}>
             {t('sale.pay')} (F8)
           </Button>
           <Group grow gap="xs">
@@ -156,6 +195,7 @@ export const SaleScreen: React.FC = () => {
       </Group>
       <ShortcutBar />
 
+      <OpenShiftDialog opened={dialog === 'shift'} onClose={close} onOpened={setShift} />
       <PaymentDialog
         opened={dialog === 'pay'}
         total={sale.totals.total}
@@ -166,6 +206,7 @@ export const SaleScreen: React.FC = () => {
           setDialog('customer')
         }}
         onConfirm={complete}
+        onPrint={(s, cash) => void printSaleSafe(s.id, cash)}
       />
       <CustomerDialog
         opened={dialog === 'customer'}

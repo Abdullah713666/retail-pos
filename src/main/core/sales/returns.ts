@@ -10,7 +10,8 @@
  * Void: manager/owner PIN always (even if the current user is one). Only a completed sale with
  * no returns can be voided (return the goods instead otherwise). Reverses all stock to the
  * same lots and the khata credit part; marks the sale 'void' (rows stay for the audit trail).
- * Cash refund of a voided sale is not tracked until cash shifts exist (M9 reads status).
+ * Cash refunds (returns, voids) are tagged with the open shift (shift_id / void_shift_id) so the
+ * drawer's expected cash drops by them; with no open shift they are simply not tracked.
  */
 import type Database from 'better-sqlite3'
 import { ok, type Result } from '@shared/result'
@@ -21,6 +22,7 @@ import { abort, must, runAtomic } from '../../db/tx'
 import { logAudit } from '../audit/service'
 import { postEntry } from '../ledger/service'
 import { postMovement } from '../stock/service'
+import { getOpenShiftId } from '../cash/service'
 import { requireApproval } from './approval'
 
 interface SaleHead {
@@ -97,10 +99,10 @@ export function returnSale(
     const now = nowLocal()
     const head = db
       .prepare(
-        `INSERT INTO sale_returns (sale_id, party_id, total, note, user_id, approved_by, created_at)
-         VALUES (?, ?, 0, ?, ?, ?, ?)`
+        `INSERT INTO sale_returns (sale_id, party_id, total, note, user_id, approved_by, created_at, shift_id)
+         VALUES (?, ?, 0, ?, ?, ?, ?, ?)`
       )
-      .run(sale.id, sale.party_id, input.note?.trim() || null, userId, approvedBy, now)
+      .run(sale.id, sale.party_id, input.note?.trim() || null, userId, approvedBy, now, getOpenShiftId(db))
     const returnId = Number(head.lastInsertRowid)
 
     const lineStmt = db.prepare(
@@ -229,8 +231,8 @@ export function voidSale(db: Database.Database, input: VoidSaleInput, userId: nu
       )
     }
     db.prepare(
-      `UPDATE sales SET status = 'void', voided_at = ?, voided_by = ?, void_reason = ? WHERE id = ?`
-    ).run(nowLocal(), approvedBy, reason, sale.id)
+      `UPDATE sales SET status = 'void', voided_at = ?, voided_by = ?, void_reason = ?, void_shift_id = ? WHERE id = ?`
+    ).run(nowLocal(), approvedBy, reason, getOpenShiftId(db), sale.id)
     logAudit(db, {
       userId, action: 'sale_voided', entity: 'sales', entityId: sale.id,
       details: { invoiceNo: sale.invoice_no, reason, approvedBy }

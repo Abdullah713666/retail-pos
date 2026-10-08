@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { Button, Group, Modal, Stack, Text, TextInput } from '@mantine/core'
 import { useTranslation } from 'react-i18next'
 import { formatPKR } from '@shared/money'
-import type { CompleteSaleResult, Party } from '@shared/types'
+import type { CompleteSaleResult, Party, Sale } from '@shared/types'
+import { getPrintMode } from '../../lib/print'
 import { moneyText, parseMoney } from './moneyText'
 
 interface Props {
@@ -13,14 +14,17 @@ interface Props {
   onChooseCustomer: () => void
   /** Returns the saved sale, or null if main refused it (the error toast is already shown). */
   onConfirm: (paidCash: number, paidCredit: number) => Promise<CompleteSaleResult | null>
+  /** Print button on the done screen (shown unless printing is automatic). */
+  onPrint: (sale: Sale, cashReceived: number) => void
 }
 
-export const PaymentDialog: React.FC<Props> = ({ opened, total, customer, onClose, onChooseCustomer, onConfirm }) => {
+export const PaymentDialog: React.FC<Props> = ({ opened, total, customer, onClose, onChooseCustomer, onConfirm, onPrint }) => {
   const { t } = useTranslation()
   const [cash, setCash] = useState('')
   const [credit, setCredit] = useState('')
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState<CompleteSaleResult | null>(null)
+  const [showPrint, setShowPrint] = useState(false)
 
   useEffect(() => {
     if (opened) {
@@ -51,8 +55,27 @@ export const PaymentDialog: React.FC<Props> = ({ opened, total, customer, onClos
     setBusy(true)
     const res = await onConfirm(cashN, creditN)
     setBusy(false)
-    if (res) setDone(res)
+    if (res) {
+      setDone(res)
+      setShowPrint((await getPrintMode()) !== 'auto')
+    }
   }
+
+  const doPrint = (): void => {
+    if (done) onPrint(done.sale, done.changeDue + done.sale.paidCash)
+  }
+
+  useEffect(() => {
+    if (!done || !showPrint) return
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key.toLowerCase() === 'p') {
+        e.preventDefault()
+        doPrint()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
 
   const onKeyDown = (e: React.KeyboardEvent): void => {
     if (e.altKey && e.key === '1') {
@@ -78,6 +101,7 @@ export const PaymentDialog: React.FC<Props> = ({ opened, total, customer, onClos
           {done.sale.paidCredit > 0 && (
             <Text size="sm" c="orange">{t('sale.onKhata', { amount: formatPKR(done.sale.paidCredit) })}</Text>
           )}
+          {showPrint && <Button fullWidth variant="light" onClick={doPrint}>{t('print.printReceipt')} (P)</Button>}
           <Button data-autofocus fullWidth size="md" onClick={onClose}>{t('sale.newSale')} (Enter)</Button>
         </Stack>
       </Modal>

@@ -4,12 +4,11 @@ import {
   TextInput,
   PasswordInput,
   Radio,
-  Group,
-  Button,
   Text,
   SegmentedControl
 } from '@mantine/core'
 import { useTranslation } from 'react-i18next'
+import { PrinterFields } from '../../components/PrinterFields'
 
 interface ShopStepProps {
   shopName: string
@@ -158,41 +157,16 @@ interface PrinterStepProps {
   setPrinterName: (v: string) => void
   paperWidth: '58mm' | '80mm'
   setPaperWidth: (v: '58mm' | '80mm') => void
-  onTestPrint: () => void
 }
 
-export const PrinterStep: React.FC<PrinterStepProps> = ({
-  printerName,
-  setPrinterName,
-  paperWidth,
-  setPaperWidth,
-  onTestPrint
-}) => {
-  const { t } = useTranslation()
-  return (
-    <Stack gap="md">
-      <TextInput
-        label={t('wizard.printerName')}
-        placeholder="e.g. POS-80 or leave empty for default"
-        value={printerName}
-        onChange={(e) => setPrinterName(e.currentTarget.value)}
-      />
-      <Radio.Group
-        label={t('wizard.paperWidth')}
-        value={paperWidth}
-        onChange={(val) => setPaperWidth(val as '58mm' | '80mm')}
-      >
-        <Group mt="xs">
-          <Radio value="80mm" label="80 mm (Standard Thermal)" />
-          <Radio value="58mm" label="58 mm (Narrow Thermal)" />
-        </Group>
-      </Radio.Group>
-      <Button variant="outline" onClick={onTestPrint}>
-        {t('wizard.testPrint')}
-      </Button>
-    </Stack>
-  )
-}
+export const PrinterStep: React.FC<PrinterStepProps> = ({ printerName, setPrinterName, paperWidth, setPaperWidth }) => (
+  <PrinterFields
+    printerName={printerName}
+    onPrinterName={setPrinterName}
+    paperWidth={paperWidth}
+    onPaperWidth={setPaperWidth}
+  />
+)
 
 interface LanguageStepProps {
   language: 'en' | 'ur'

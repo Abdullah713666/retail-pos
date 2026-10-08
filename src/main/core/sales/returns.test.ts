@@ -5,6 +5,7 @@ import { createParty } from '../parties/service'
 import { createItem } from '../items/service'
 import { createPurchase } from '../purchases/service'
 import { getBalance } from '../ledger/service'
+import { openShift } from '../cash/service'
 import { getItemStock, getLotStock } from '../stock/service'
 import { completeSale, getSale, returnSale, voidSale } from './service'
 import { resetApprovalLocksForTest } from './approval'
@@ -17,6 +18,7 @@ function setup() {
     (createUser(db, { name: username, username, pin: '1234', role }) as unknown as { id: number }).id
   const cashier = mk('cash', 'cashier')
   const manager = mk('mgr', 'manager')
+  openShift(db, { openingCash: 0 }, cashier)
   const sup = createParty(db, { type: 'supplier', name: 'Hamid' })
   const cus = createParty(db, { type: 'customer', name: 'Ali' })
   if (!sup.ok || !cus.ok) throw new Error('party')

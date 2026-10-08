@@ -60,14 +60,6 @@ export const SetupScreen: React.FC = () => {
     changeAppLanguage(lang)
   }
 
-  const handleTestPrint = (): void => {
-    notifications.show({
-      title: t('common.success'),
-      message: t('wizard.testPrintSuccess'),
-      color: 'teal'
-    })
-  }
-
   const validateStep = (): boolean => {
     setError(null)
     if (activeStep === 0) {
@@ -214,7 +206,6 @@ export const SetupScreen: React.FC = () => {
             setPrinterName={setPrinterName}
             paperWidth={paperWidth}
             setPaperWidth={setPaperWidth}
-            onTestPrint={handleTestPrint}
           />
         )}
 

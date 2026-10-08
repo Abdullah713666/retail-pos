@@ -11,6 +11,7 @@ const KEYS: Array<[string, string]> = [
   ['F6', 'sale.keys.recall'],
   ['F7', 'sale.keys.invoices'],
   ['F8', 'sale.keys.pay'],
+  ['F9', 'sale.keys.print'],
   ['↑↓', 'sale.keys.line'],
   ['+ -', 'sale.keys.qty'],
   ['Del', 'sale.keys.remove'],

@@ -7,6 +7,7 @@ import { createPurchase } from '../purchases/service'
 import { getBalance } from '../ledger/service'
 import { getItemStock, getLotStock } from '../stock/service'
 import { setSetting } from '../settings/service'
+import { openShift } from '../cash/service'
 import type { MainModule } from '../../modules/types'
 import { completeSale, discardHeld, getSale, holdSale, listSales } from './service'
 
@@ -17,6 +18,7 @@ interface Ctx { db: Db; userId: number; supplierId: number; customerId: number }
 function setup(): Ctx {
   const db = createTestDb()
   const user = createUser(db, { name: 'Cash', username: 'cash', pin: '1234', role: 'cashier' }) as unknown as { id: number }
+  openShift(db, { openingCash: 0 }, user.id)
   const sup = createParty(db, { type: 'supplier', name: 'Hamid' })
   const cus = createParty(db, { type: 'customer', name: 'Ali' })
   if (!sup.ok || !cus.ok) throw new Error('party')

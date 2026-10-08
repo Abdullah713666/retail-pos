@@ -304,3 +304,52 @@ Newest entry at the top. Gemini adds a **Build** entry after each milestone; Cla
 
 ### [Review] M7 — 2026-10-08
 - Verdict: **approved**. Main re-prices every line, payment/credit-limit checks before writes, invoice counter inside the transaction (no gaps), stock via allocator + postMovement, khata via postEntry, module hooks inside the transaction, `db/tx.ts` shared. PIN approval has its own lockout. Typecheck + 167 tests pass. Accepted: negative stock blocked by default (`allow_negative_stock` setting, add toggle in Settings later), hard credit-limit block, held drafts may be deleted (drafts are not business records). Owner must run the M7 manual steps (UI not yet clicked through).
+
+### [Build] M8 — Printing — 2026-10-08
+- Summary: Receipts are built by PURE functions (`printing/receipt.ts`: `ReceiptData` -> HTML string, 58 mm and 80 mm, Urdu = `dir="rtl"` with Segoe UI/Tahoma fallbacks; `zreport-html.ts`, `html.ts`, `labels.ts`). `printing/service.ts` renders that HTML in a hidden BrowserWindow and calls `webContents.print({ silent: true, deviceName, margins none, pageSize { width: 58000|80000 microns, height measured from the content } })`. Settings > Printer: dropdown from `getPrintersAsync`, refresh, paper width, test print (uses the unsaved form values), print-after-sale `print_mode` auto/ask/off. New Settings tab "Sales rules" with the owner-only `allow_negative_stock` toggle. The first-run wizard printer step now uses the same picker + a real test print.
+- How print failures are isolated:
+  - Printing is a SEPARATE IPC call (`printing:printSale`) made by the renderer AFTER `sales:complete` has committed. The sale transaction never knows about printers.
+  - Every function in `printing/service.ts` returns a `Result` and catches everything (load error, no printer, driver error, 30 s timeout); the hidden window is always destroyed in `finally`.
+  - Renderer wrapper `lib/print.ts` (`printSaleSafe`) never throws; a failure shows an orange auto-closing toast ("Printing failed" + plain message, "press F9 to print again") and the sale screen carries on.
+- Wiring: auto = print right after the sale (cash received passed so the receipt shows change); ask/off = a "Print receipt (P)" button on the sale-done dialog; F9 on the sale screen reprints the last sale (falls back to the newest completed invoice after a restart); "Reprint" button on the invoice detail (F7). Reprints have no "cash received/change" lines (change is never stored). Voided invoices print with a VOID banner.
+- Files: src/main/core/printing/{html,labels,receipt,receipt-data,zreport-html,service,ipc}.ts (+receipt.test.ts), src/shared/types/printing.ts, src/shared/ipc-contract.ts, src/preload/index.ts, src/main/ipc/register.ts, src/renderer/src/lib/print.ts, src/renderer/src/components/PrinterFields.tsx, SettingsScreen, SetupScreen + setup/SetupSteps, SaleScreen, sale/{PaymentDialog,InvoiceDetail,ShortcutBar}, i18n en/ur, docs
+- Checks: typecheck ✅ lint ✅ tests ✅ (see M9 entry for the final count) `npm run build` ✅. NOT run by hand and NOT tested on a real printer (owner does the M8 "Done when" on Windows).
+- Manual test steps:
+  1. Settings > Printer: pick the thermal printer, choose 80 mm (or 58 mm), press Test print. Save.
+  2. Open a shift (Cash screen), make a sale: the receipt prints by itself. Switch "Print receipt after sale" to Ask, sell again: use the Print button (or P) on the done dialog.
+  3. Sale screen F9 reprints the last receipt. F7 > invoice > Reprint.
+  4. Switch the printer off (or choose a wrong name) and sell: sale still completes, orange toast appears.
+  5. Switch language to Urdu and print: Urdu labels and item names should read right-to-left.
+- Open questions / deviations:
+  - Receipt labels live in `printing/labels.ts` (en + ur), not the renderer i18n files, because the HTML is built in the main process.
+  - Default `print_mode` is `auto` (key absent = auto). With no printer chosen, auto shows the "No printer chosen" toast on every sale.
+  - Urdu uses system fonts (Segoe UI/Tahoma; Nastaliq only if installed). Needs a look on the real printer; thermal printers rasterise, so small Urdu text on 58 mm may be hard to read.
+  - Electron `PrinterInfo.isDefault` is missing from the typings of this version, read through a cast.
+
+### [Build] M9 — Cash shifts + day end — 2026-10-08
+- Summary: Migration `004_cash.sql` adds a partial unique index (only ONE open shift, enforced by the DB too) and shift tags: `sales.void_shift_id`, `sale_returns.shift_id`, `purchases.shift_id`, `party_ledger.shift_id` (`sales.shift_id` already existed). `cash/service.ts`: open shift, cash in/out/expense entries, close shift (stores expected, counted; difference = counted - expected), `computeShiftCash`; `cash/zreport.ts`: Z report (also works on an open shift as a live "so far" report). Cash screen: open shift, live expected-cash card, add entry, close with counted cash and live difference, history of closed shifts, Z report modal (print on the receipt printer, or window.print of the page).
+- Sale with no open shift: BLOCKED. `completeSale` aborts with `NO_OPEN_SHIFT` before anything is written (no invoice number used). The sale screen shows an orange banner and opens the "Open shift" dialog on load and on F8/Pay; holding a bill is still allowed without a shift. A completed sale (also a recalled held bill) stores the open shift's id in `sales.shift_id` inside the sale transaction.
+- Expected cash as implemented: `opening + cash sales - cash refunds + cash in - cash out - expenses - paid to suppliers + khata received from customers`.
+  - cash sales = SUM(`sales.paid_cash`) with that `shift_id` (verified: paid_cash = total - credit, i.e. cash kept; change is never stored so it is not counted).
+  - cash refunds = `sale_returns.refund_cash` with that shift + `paid_cash` of sales voided while that shift was open (`void_shift_id`). Sold and voided in the same shift nets to 0.
+  - paid to suppliers = `purchases.paid` (M6 cash paid with a purchase) + standalone supplier `payment_out` (M5 payments).
+  - khata received = standalone customer `payment_in`.
+  - Anything that happens with NO open shift is not tracked (shift_id NULL). A refund/void after a shift is closed is not added to that closed shift, it goes to the shift open at that time.
+- Z report: invoices count, gross, discounts, net, paid by cash / on credit, returns (count, total), voids (count, total), cash drawer lines, expected, counted, difference, every cash entry. Voided sales are excluded from sales totals.
+- Files: src/main/db/migrations/004_cash.sql, src/main/db/migrate.ts, src/main/core/cash/{service,zreport,ipc}.ts (+service.test.ts), src/main/core/sales/{service,returns}.ts (+ both tests now open a shift in setup), src/main/core/purchases/service.ts, src/main/core/ledger/service.ts, src/shared/types/cash.ts, ipc-contract, preload, register.ts, src/renderer/src/screens/{CashScreen,SaleScreen}.tsx, screens/cash/{OpenShiftDialog,ZReportView,ZReportModal}.tsx, i18n en/ur, docs
+- Checks: typecheck ✅ lint ✅ tests ✅ (194 tests, 27 new: 9 receipt/report HTML, 18 cash). `npm run build` ✅. NOT clicked through by hand (no interactive session).
+- Manual test steps:
+  1. `npm run dev`, Sale screen: banner + Open shift dialog appears. Enter opening cash.
+  2. Sell something for cash, one on credit, make a return and a void (F7).
+  3. Cash screen: add a Cash in, a Cash out (note), an Expense (note). Expected cash matches your arithmetic.
+  4. Enter counted cash: difference shows live. Close shift: Z report opens, print it.
+  5. Try selling after closing: blocked until a new shift is opened.
+- Open questions / deviations:
+  - Customer/supplier payments have no payment method in M5, so ALL of them are treated as cash. Bank/online payments would need a method field (later).
+  - Sale returns and voids do not require an open shift (the cash is simply untracked if none is open). Say if you want them blocked too.
+  - A sale voided in a LATER shift than it was sold: the old closed shift keeps its stored expected cash; the refund is charged to the shift open at void time. Its live Z report will show the sale as voided.
+  - Any role (including cashier) can open/close a shift and see the Z report; no manager approval for a non-zero difference.
+  - Purchase returns involve no cash in this app (they only reduce the supplier balance), so they are not in the drawer.
+
+### [Review] M8 + M9 — 2026-10-08
+- Verdict: **approved**. Printing is a separate call after the sale commits, never throws, hidden sandboxed window with escaped HTML (reviewer set `javascript: false`). One-open-shift enforced by unique partial index; sales blocked without a shift; expected cash covers sales, refunds, voids, cash in/out, expenses, supplier payments and khata receipts. Typecheck + 194 tests pass. Owner to test: real 58/80 mm printer on Windows incl. Urdu text; khata payments are treated as cash for now.

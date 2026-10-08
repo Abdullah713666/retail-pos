@@ -33,6 +33,7 @@ import type {
   StatementInput
 } from '@shared/types'
 import { logAudit } from '../audit/service'
+import { getOpenShiftId } from '../cash/service'
 
 export interface PostEntryInput {
   partyId: number
@@ -236,6 +237,8 @@ export function recordPayment(
       userId
     })
     if (!res.ok) return res
+    // Tag the open shift: this is cash into / out of the drawer.
+    db.prepare('UPDATE party_ledger SET shift_id = ? WHERE id = ?').run(getOpenShiftId(db), res.data.id)
     logAudit(db, {
       userId,
       action: isCustomer ? 'payment_in' : 'payment_out',

@@ -18,6 +18,8 @@
  * batch you do not have). Credit limit: parties.credit_limit > 0 is a hard block
  * (balance + new credit must stay within it); 0 means no limit. There is no override.
  *
+ * A sale needs an open cash shift (NO_OPEN_SHIFT otherwise); its id is stored in sales.shift_id.
+ *
  * Held bills are rows with status 'held' and no invoice number. Completing a recalled bill
  * UPDATES that same row (no duplicate). Discarding a held bill deletes the draft: it never
  * became a business record (no stock, no ledger, no invoice).
@@ -33,6 +35,7 @@ import { postEntry, getBalance } from '../ledger/service'
 import { postMovement } from '../stock/service'
 import { defaultAllocator } from '../stock/allocator'
 import { getSetting, setSetting } from '../settings/service'
+import { getOpenShiftId } from '../cash/service'
 import { getActiveModules, getStockAllocator } from '../../modules/registry'
 import type { MainModule, StockAllocator } from '../../modules/types'
 import { priceDraft, type PricedLine } from './pricing'
@@ -78,6 +81,7 @@ interface Header {
   paidCash: number
   paidCredit: number
   note: string | null
+  shiftId: number | null
 }
 
 /** Inserts a new sale row, or turns the held row `heldId` into this one (lines are rewritten). */
@@ -92,11 +96,12 @@ function writeHeader(db: Database.Database, h: Header, heldId: number | null | u
     }
     db.prepare(
       `UPDATE sales SET invoice_no = ?, party_id = ?, user_id = ?, status = ?, subtotal = ?, discount = ?,
-         bill_discount = ?, bill_discount_bp = ?, total = ?, paid_cash = ?, paid_credit = ?, note = ?, created_at = ?
+         bill_discount = ?, bill_discount_bp = ?, total = ?, paid_cash = ?, paid_credit = ?, note = ?, created_at = ?,
+         shift_id = ?
        WHERE id = ?`
     ).run(
       h.invoiceNo, h.partyId, h.userId, h.status, h.subtotal, h.discount, h.billDiscount, h.billDiscountBp,
-      h.total, h.paidCash, h.paidCredit, h.note, now, heldId
+      h.total, h.paidCash, h.paidCredit, h.note, now, h.shiftId, heldId
     )
     db.prepare('DELETE FROM sale_lines WHERE sale_id = ?').run(heldId)
     return heldId
@@ -104,12 +109,12 @@ function writeHeader(db: Database.Database, h: Header, heldId: number | null | u
   const info = db
     .prepare(
       `INSERT INTO sales (invoice_no, party_id, user_id, status, subtotal, discount, bill_discount,
-         bill_discount_bp, total, paid_cash, paid_credit, note, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+         bill_discount_bp, total, paid_cash, paid_credit, note, created_at, shift_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .run(
       h.invoiceNo, h.partyId, h.userId, h.status, h.subtotal, h.discount, h.billDiscount, h.billDiscountBp,
-      h.total, h.paidCash, h.paidCredit, h.note, now
+      h.total, h.paidCash, h.paidCredit, h.note, now, h.shiftId
     )
   return Number(info.lastInsertRowid)
 }
@@ -194,7 +199,7 @@ export function holdSale(db: Database.Database, input: SaleDraftInput, userId: n
       {
         partyId, userId, status: 'held', invoiceNo: null, subtotal: t.subtotal, discount: t.discount,
         billDiscount: t.billDiscount, billDiscountBp: priced.billDiscountBp, total: t.total,
-        paidCash: 0, paidCredit: 0, note: input.note?.trim() || null
+        paidCash: 0, paidCredit: 0, note: input.note?.trim() || null, shiftId: null
       },
       input.heldSaleId
     )
@@ -228,6 +233,9 @@ export function completeSale(
   const allocator = getStockAllocator(modules) ?? defaultAllocator
 
   const run = db.transaction((): { saleId: number; changeDue: number } => {
+    // Selling needs an open cash shift so every rupee in the drawer belongs to one.
+    const shiftId = getOpenShiftId(db)
+    if (shiftId == null) abort('NO_OPEN_SHIFT', 'Open a cash shift first (Cash screen), then sell.')
     const partyId = checkParty(db, input.partyId)
     const priced = priceDraft(db, input)
     const total = priced.totals.total
@@ -263,7 +271,7 @@ export function completeSale(
       {
         partyId, userId, status: 'completed', invoiceNo, subtotal: t.subtotal, discount: t.discount,
         billDiscount: t.billDiscount, billDiscountBp: priced.billDiscountBp, total,
-        paidCash: cashDue, paidCredit, note: input.note?.trim() || null
+        paidCash: cashDue, paidCredit, note: input.note?.trim() || null, shiftId
       },
       input.heldSaleId
     )

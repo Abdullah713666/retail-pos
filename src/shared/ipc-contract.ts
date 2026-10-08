@@ -36,7 +36,17 @@ import type {
   SaleSummary,
   SaleReturnInput,
   SaleReturnResult,
-  VoidSaleInput
+  VoidSaleInput,
+  Shift,
+  ShiftDetail,
+  OpenShiftInput,
+  CashEntry,
+  CashEntryInput,
+  CloseShiftInput,
+  ZReport,
+  PrinterInfo,
+  PrintSaleInput,
+  TestPrintInput
 } from './types'
 
 export interface MigrationStatus {
@@ -119,5 +129,20 @@ export interface IpcApi {
     getByInvoice: (invoiceNo: string) => Promise<Result<Sale>>
     return: (input: SaleReturnInput) => Promise<Result<SaleReturnResult>>
     void: (input: VoidSaleInput) => Promise<Result<void>>
+  }
+  cash: {
+    current: () => Promise<Result<Shift | null>>
+    open: (input: OpenShiftInput) => Promise<Result<Shift>>
+    addEntry: (input: CashEntryInput) => Promise<Result<CashEntry>>
+    close: (input: CloseShiftInput) => Promise<Result<ShiftDetail>>
+    detail: (shiftId: number) => Promise<Result<ShiftDetail>>
+    list: (limit?: number) => Promise<Result<Shift[]>>
+    zReport: (shiftId: number) => Promise<Result<ZReport>>
+  }
+  printing: {
+    listPrinters: () => Promise<Result<PrinterInfo[]>>
+    testPrint: (input: TestPrintInput) => Promise<Result<void>>
+    printSale: (input: PrintSaleInput) => Promise<Result<void>>
+    printZReport: (shiftId: number) => Promise<Result<void>>
   }
 }

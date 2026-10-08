@@ -4,7 +4,6 @@ import {
   Tabs,
   TextInput,
   Button,
-  Group,
   Stack,
   Radio,
   SegmentedControl,
@@ -19,7 +18,8 @@ import { useAuth } from '../context/AuthContext'
 import { useModules } from '../modules'
 import { changeAppLanguage } from '../i18n'
 import { UsersTab } from './settings/UsersTab'
-import type { User } from '@shared/types'
+import { PrinterFields } from '../components/PrinterFields'
+import type { PrintMode, User } from '@shared/types'
 
 export const SettingsScreen: React.FC = () => {
   const { t, i18n } = useTranslation()
@@ -33,6 +33,8 @@ export const SettingsScreen: React.FC = () => {
   const [receiptFooter, setReceiptFooter] = useState('')
   const [printerName, setPrinterName] = useState('')
   const [paperWidth, setPaperWidth] = useState<'58mm' | '80mm'>('80mm')
+  const [printMode, setPrintMode] = useState<PrintMode>('auto')
+  const [allowNegative, setAllowNegative] = useState(false)
   const [language, setLanguage] = useState<'en' | 'ur'>((i18n.language as 'en' | 'ur') || 'en')
   const [pharmacyEnabled, setPharmacyEnabled] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -52,6 +54,8 @@ export const SettingsScreen: React.FC = () => {
           setReceiptFooter(s['receipt_footer'] || '')
           setPrinterName(s['printer_name'] || '')
           setPaperWidth(s['paper_width'] === '58mm' ? '58mm' : '80mm')
+          setPrintMode(s['print_mode'] === 'ask' || s['print_mode'] === 'off' ? s['print_mode'] : 'auto')
+          setAllowNegative(s['allow_negative_stock'] === '1')
           if (s['language'] === 'ur' || s['language'] === 'en') {
             setLanguage(s['language'])
           }
@@ -91,6 +95,8 @@ export const SettingsScreen: React.FC = () => {
         receipt_footer: receiptFooter.trim(),
         printer_name: printerName.trim(),
         paper_width: paperWidth,
+        print_mode: printMode,
+        allow_negative_stock: allowNegative ? '1' : '0',
         language
       }
 
@@ -145,6 +151,7 @@ export const SettingsScreen: React.FC = () => {
           <Tabs.List mb="md">
             <Tabs.Tab value="shop">{t('settings.shopInfo')}</Tabs.Tab>
             <Tabs.Tab value="printer">{t('settings.printer')}</Tabs.Tab>
+            <Tabs.Tab value="sales">{t('settings.sales')}</Tabs.Tab>
             <Tabs.Tab value="language">{t('settings.language')}</Tabs.Tab>
             <Tabs.Tab value="modules">{t('settings.modules')}</Tabs.Tab>
             <Tabs.Tab value="users">{t('settings.users')}</Tabs.Tab>
@@ -182,21 +189,38 @@ export const SettingsScreen: React.FC = () => {
           {/* Printer & Hardware */}
           <Tabs.Panel value="printer">
             <Stack gap="md" style={{ maxWidth: 500 }}>
-              <TextInput
-                label={t('wizard.printerName')}
-                value={printerName}
-                onChange={(e) => setPrinterName(e.currentTarget.value)}
+              <PrinterFields
+                printerName={printerName}
+                onPrinterName={setPrinterName}
+                paperWidth={paperWidth}
+                onPaperWidth={setPaperWidth}
               />
               <Radio.Group
-                label={t('wizard.paperWidth')}
-                value={paperWidth}
-                onChange={(val) => setPaperWidth(val as '58mm' | '80mm')}
+                label={t('settings.printAfterSale')}
+                value={printMode}
+                onChange={(v) => setPrintMode(v as PrintMode)}
               >
-                <Group mt="xs">
-                  <Radio value="80mm" label="80 mm" />
-                  <Radio value="58mm" label="58 mm" />
-                </Group>
+                <Stack mt="xs" gap={4}>
+                  <Radio value="auto" label={t('settings.printAuto')} />
+                  <Radio value="ask" label={t('settings.printAsk')} />
+                  <Radio value="off" label={t('settings.printOff')} />
+                </Stack>
               </Radio.Group>
+              <Button onClick={handleSaveSettings} loading={saving} style={{ alignSelf: 'flex-start' }}>
+                {t('settings.save')}
+              </Button>
+            </Stack>
+          </Tabs.Panel>
+
+          {/* Sales rules */}
+          <Tabs.Panel value="sales">
+            <Stack gap="md" style={{ maxWidth: 500 }}>
+              <Switch
+                label={t('settings.allowNegative')}
+                description={t('settings.allowNegativeDesc')}
+                checked={allowNegative}
+                onChange={(e) => setAllowNegative(e.currentTarget.checked)}
+              />
               <Button onClick={handleSaveSettings} loading={saving} style={{ alignSelf: 'flex-start' }}>
                 {t('settings.save')}
               </Button>

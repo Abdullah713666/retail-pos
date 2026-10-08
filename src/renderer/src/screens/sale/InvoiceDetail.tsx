@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { formatPKR } from '@shared/money'
 import type { Sale } from '@shared/types'
 import { callApi } from '../../lib/api'
+import { printSaleSafe } from '../../lib/print'
 import { useAuth } from '../../context/AuthContext'
 import { ApprovalFields, type ApprovalValue } from './ApprovalFields'
 
@@ -68,7 +69,10 @@ export const InvoiceDetail: React.FC<Props> = ({ sale, onChanged }) => {
     <Stack gap="xs">
       <Group justify="space-between">
         <Text fw={700}>{sale.invoiceNo} · {sale.partyName ?? t('sale.walkIn')}</Text>
-        <Text fw={700}>{formatPKR(sale.total)}</Text>
+        <Group gap="xs">
+          <Text fw={700}>{formatPKR(sale.total)}</Text>
+          <Button size="compact-sm" variant="light" onClick={() => void printSaleSafe(sale.id)}>{t('print.reprint')}</Button>
+        </Group>
       </Group>
       {sale.status === 'void' && <Text c="red">{t('sale.isVoid')}: {sale.voidReason}</Text>}
       <Table verticalSpacing={4}>

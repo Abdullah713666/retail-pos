@@ -7,7 +7,8 @@
  * now, a payment_out DEBIT for the paid amount (a cash purchase nets to zero).
  * Cost: each line's cost per BASE unit = round half-up(unitCost / unitFactor). It is stored
  * on the lot and becomes the item's latest cost_price.
- * The cash drawer is not touched yet (cash shifts arrive in M9).
+ * `paid` is cash out of the drawer: the purchase is tagged with the open shift (shift_id) so
+ * expected cash drops by it. With no open shift it is not tracked.
  */
 import type Database from 'better-sqlite3'
 import { ok, type Result } from '@shared/result'
@@ -17,6 +18,7 @@ import type { CreatePurchaseInput, PurchaseDetail, PurchaseLineInput } from '@sh
 import { logAudit } from '../audit/service'
 import { postEntry } from '../ledger/service'
 import { findOrCreateLot, postMovement } from '../stock/service'
+import { getOpenShiftId } from '../cash/service'
 import { abort, must, runAtomic } from '../../db/tx'
 import { getPurchase } from './queries'
 
@@ -145,10 +147,10 @@ export function createPurchase(
 
     const info = db
       .prepare(
-        `INSERT INTO purchases (supplier_id, bill_no, subtotal, discount, total, paid, note, user_id, created_at, purchase_date)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO purchases (supplier_id, bill_no, subtotal, discount, total, paid, note, user_id, created_at, purchase_date, shift_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
-      .run(input.supplierId, billNo, subtotal, discount, total, paid, note, userId, now, date)
+      .run(input.supplierId, billNo, subtotal, discount, total, paid, note, userId, now, date, paid > 0 ? getOpenShiftId(db) : null)
     const purchaseId = Number(info.lastInsertRowid)
 
     const insertLine = db.prepare(
