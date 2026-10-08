@@ -24,6 +24,7 @@ import {
   getCurrentUser,
   checkPermission
 } from '../core/auth/service'
+import { registerItemsIpc } from '../core/items/ipc'
 
 let currentMigrationStatus: MigrationStatus = { success: true, error: null }
 
@@ -170,4 +171,7 @@ export function registerIpcHandlers(): void {
     const db = getDb()
     return ok(hasUsers(db))
   })
+
+  // Items & Categories
+  registerItemsIpc()
 }

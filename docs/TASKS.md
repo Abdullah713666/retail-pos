@@ -37,10 +37,10 @@ Mark items `[x]` when done. Each milestone ends with: typecheck + lint + tests p
 - **Done when:** fresh install → wizard → login → Sale screen; cashier can't open Settings.
 
 ## M4 — Items
-- [ ] Items service: create/update/deactivate, units (packs), categories, search (name/alias/barcode), barcode lookup
-- [ ] Items screen: searchable table, add/edit form with units, keyboard friendly
-- [ ] CSV import (name, barcode, category, base unit, sale price, cost price, pack name, pack factor) with preview + error rows
-- [ ] Opening stock entry (creates `opening` movements)
+- [x] Items service: create/update/deactivate, units (packs), categories, search (name/alias/barcode), barcode lookup
+- [x] Items screen: searchable table, add/edit form with units, keyboard friendly
+- [x] CSV import (name, barcode, category, base unit, sale price, cost_price, pack name, pack factor) with preview + error rows
+- [x] Opening stock entry (creates `opening` movements)
 - **Done when:** can import 5,000 items from CSV in < 10 s and search returns in < 100 ms.
 
 ## M5 — Parties + khata

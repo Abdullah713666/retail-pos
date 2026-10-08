@@ -1,5 +1,19 @@
 import type { Result } from './result'
-import type { User, CreateUserInput, LoginInput, SetupCompleteInput } from './types'
+import type {
+  User,
+  CreateUserInput,
+  LoginInput,
+  SetupCompleteInput,
+  Category,
+  Item,
+  CreateItemInput,
+  UpdateItemInput,
+  ItemFilter,
+  ItemListResult,
+  BarcodeLookupResult,
+  CsvPreviewResult,
+  CsvImportResult
+} from './types'
 
 export interface MigrationStatus {
   success: boolean
@@ -37,5 +51,21 @@ export interface IpcApi {
     logout: () => Promise<Result<void>>
     getCurrentUser: () => Promise<Result<User | null>>
     hasUsers: () => Promise<Result<boolean>>
+  }
+  categories: {
+    list: () => Promise<Result<Category[]>>
+    create: (name: string) => Promise<Result<Category>>
+  }
+  items: {
+    list: (filter: ItemFilter) => Promise<Result<ItemListResult>>
+    get: (id: number) => Promise<Result<Item | null>>
+    search: (query: string, limit?: number) => Promise<Result<Item[]>>
+    lookupBarcode: (barcode: string) => Promise<Result<BarcodeLookupResult | null>>
+    create: (input: CreateItemInput) => Promise<Result<Item>>
+    update: (input: UpdateItemInput) => Promise<Result<Item>>
+    deactivate: (id: number) => Promise<Result<void>>
+    reactivate: (id: number) => Promise<Result<void>>
+    previewCsv: (csvContent: string) => Promise<Result<CsvPreviewResult>>
+    importCsv: (csvContent: string) => Promise<Result<CsvImportResult>>
   }
 }

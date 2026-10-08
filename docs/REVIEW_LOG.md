@@ -171,3 +171,52 @@ Newest entry at the top. Gemini adds a **Build** entry after each milestone; Cla
 ### [Review] M3 fixes — 2026-10-08
 - Verdict: **approved**. One-transaction `setup:complete` with forced owner, bypass removed, PIN lockout (5 tries / 60 s), stricter login validation. Typecheck, lint, 72 tests pass.
 - Next: owner clicks through the M3 manual test steps, then M4.
+
+### [Build] M4 — Items — 2026-10-08
+- Summary: Implemented complete Items service with categories, units (pack conversions), fast multi-term search (name/alias/barcode), barcode lookup on items and pack units, soft deactivation, opening stock movements, and high-performance CSV import with validation & preview. Built keyboard-friendly searchable Items UI with Add/Edit item form, pack units, CSV import modal with sample format copying, category management, role-based controls, and full English & Urdu i18n.
+- Files: src/shared/types/index.ts, src/shared/csv.ts, src/shared/csv.test.ts, src/shared/ipc-contract.ts, src/preload/index.ts, src/main/core/audit/service.ts, src/main/core/audit/service.test.ts, src/main/core/items/categories.ts, src/main/core/items/import.ts, src/main/core/items/service.ts, src/main/core/items/service.test.ts, src/main/core/items/ipc.ts, src/main/core/items/ipc.test.ts, src/main/ipc/register.ts, src/renderer/src/screens/items/CategoryModal.tsx, src/renderer/src/screens/items/ItemFormModal.tsx, src/renderer/src/screens/items/CsvImportModal.tsx, src/renderer/src/screens/ItemsScreen.tsx, src/renderer/src/i18n/en.json, src/renderer/src/i18n/ur.json, docs/TASKS.md, docs/REVIEW_LOG.md
+- Checks: typecheck ✅ lint ✅ tests ✅ (89 tests)
+- Manual test steps:
+  1. Run `npm run dev` and login as Owner or Manager. Navigate to "Items" (`#/items`) via the sidebar.
+  2. Press `F1` or click Search to test item filtering. Click "+ Add Item" (or press `Insert`) and enter an item (e.g. "Panadol 500mg", base unit "tablet", sale price 3.50, cost price 2.80, opening stock 200). Add a pack unit "Box" with factor 200. Click Save.
+  3. Verify the item displays in the table with its category, prices in PKR, stock count, and pack badge "Box (200)".
+  4. Click "Import CSV", click "Copy Sample CSV Format", upload or choose `resources/sample-items.csv`, verify preview validation passes with 5 valid rows and 0 errors, then click "Import 5 Items".
+  5. In the table, test searching for "Arinac" or scanning/typing barcode `10002` to confirm instant filtering.
+  6. Logout and login as Cashier, open "Items", and verify items can be searched and viewed, but Add/Edit/Import action buttons are not visible.
+- Open questions / deviations:
+  - None.
+
+
+### [Review] M4 — 2026-10-08
+- Verdict: **fixes needed** (small). Good: prices in paisa end to end, zod on all inputs, role checks on every handler, create and import each run in one transaction, opening stock posts an `opening` movement, audit log wired, 5,000-item benchmark test exists. Typecheck passes and all 89 tests pass.
+- Fixes:
+  1. **Don't trust CSV rows sent from the screen.** `items:importCsv` takes already-parsed rows from the renderer and inserts them without checking barcodes again. If a barcode was added after the preview (or rows are edited), the `items.barcode UNIQUE` error kills the whole import, and nothing checks pack factor ≥ 2 / base unit.
+     - Change `items:importCsv` input to `z.string()` (the raw CSV text, same as preview).
+     - In main: run `parseItemsCsv(csv, getAllExistingBarcodes(db))` again and import **only the valid rows**. Return `skippedCount` = number of error rows.
+     - Renderer sends the same file text it previewed.
+     - Test: preview, then create an item with one of the CSV barcodes, then import → that row is skipped, the rest are imported, no crash.
+  2. **Check every barcode the same way (items and packs).** `updateItem` never checks unit barcodes, and `createItem` doesn't catch two packs with the same barcode in one form.
+     - Add one helper `findBarcodeConflict(db, barcode, excludeItemId?)` that checks `items.barcode` and `item_units.barcode`.
+     - In create and update: collect item barcode + all unit barcodes, reject duplicates inside the input, then call the helper for each. Error `BARCODE_EXISTS` with the barcode in the message.
+     - Tests: update with a unit barcode used by another item → BARCODE_EXISTS; create with two packs sharing a barcode → BARCODE_EXISTS.
+  3. **Opening stock for batch (lot) items.** Opening stock with `trackLots = true` creates a movement with no lot, which the FEFO allocator (M7) can't use. For now: if `trackLots` and opening qty > 0 → `err('LOT_REQUIRED', 'Add stock for batch items through Purchase')`. In the form, hide the opening stock field when "Track lots" is ticked. Test it.
+  4. Small ones:
+     - Escape `%` and `_` in search words (`LIKE ? ESCAPE '\'`) in both `searchItems` and `listItems`.
+     - zod caps: `pageSize` max 200, search `limit` max 200, `name`/`baseUnit`/unit `name` use `z.string().trim().min(1)`.
+     - In `searchItems`, pass `limit` as a number (not `String(limit)`).
+- After fixes: run typecheck, lint and tests, then add a `[Build] Fixes for M4` entry.
+
+
+### [Build] Fixes for M4 — 2026-10-08
+- Summary: Applied all 4 review fixes from Claude's review of M4. CSV import now re-validates on the main side, all barcodes (items and packs) are checked by one helper, batch items reject opening stock, and search/zod hardening is done.
+- Fix details:
+  - Fix 1: `items:importCsv` now takes the raw CSV text (`z.string()`). `importCsv` re-runs `parseItemsCsv(csv, getAllExistingBarcodes(db))`, imports only valid rows and returns `skippedCount` = error rows. Removed `csvRowSchema`; preload and IPC contract updated. `CsvImportModal` keeps the previewed file text and sends it, and shows a notice when rows were skipped (new `items.importSkipped` in en/ur). Test: preview, create an item with one CSV barcode, import -> that row skipped, others imported.
+  - Fix 2: New `src/main/core/items/barcodes.ts` with `findBarcodeConflict(db, barcode, excludeItemId?)` (checks `items.barcode` and `item_units.barcode`) and `checkBarcodes` (rejects duplicates inside the input, then checks each against the DB). Used by `createItem` and `updateItem`; error `BARCODE_EXISTS` with the barcode in the message. Tests: update with a unit barcode owned by another item, create with two packs sharing a barcode, update keeping its own barcodes.
+  - Fix 3: `createItem` returns `LOT_REQUIRED` ('Add stock for batch items through Purchase') when `trackLots` and opening qty > 0. Test added.
+  - Fix 4: `%`, `_` and `\` escaped in `searchItems` and `listItems` (`LIKE ? ESCAPE '\'`); zod `pageSize` and search `limit` max 200; `name`/`baseUnit`/unit `name` use `z.string().trim().min(1)`; `searchItems` passes `limit` as a number. Test for literal `%`/`_` search.
+- Checks: typecheck ✅ lint ✅ tests ✅ (95 tests)
+- Open questions / deviations:
+  - `ItemFormModal` has no "Track lots" checkbox yet, so there was nothing to hide for the opening-stock field; the backend check covers it. When the checkbox is added, hide opening stock when it is ticked.
+
+### [Review] M4 fixes — 2026-10-08
+- Verdict: **approved**. Import re-parses in main, shared barcode check, LOT_REQUIRED guard, LIKE escaping, zod caps. Typecheck + 95 tests pass. Note for M6/M12: when a "Track lots" checkbox is added to the item form, hide opening stock when ticked.
