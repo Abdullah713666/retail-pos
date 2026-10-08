@@ -1,0 +1,156 @@
+RETAIL POS - USER GUIDE
+=======================
+Version 0.1.1. Shop software for Windows 10 / 11. Works fully offline.
+
+
+1. INSTALLING ON WINDOWS
+------------------------
+1. Copy "Retail-POS-Setup-0.1.1.exe" to the shop PC (USB, WhatsApp, Google Drive).
+2. Double-click it.
+3. Windows may show a blue box "Windows protected your PC".
+   Click "More info", then "Run anyway". (This happens because the
+   installer is not digitally signed yet. It is safe.)
+4. Choose the install folder (or keep the default) and click Install.
+5. Open "Retail POS" from the desktop shortcut.
+
+Your data is NOT stored in the install folder. It is kept in:
+   C:\Users\<your name>\AppData\Roaming\Retail POS\
+Uninstalling and installing again keeps all your data.
+
+
+2. FIRST START (SETUP WIZARD)
+-----------------------------
+The first time the app opens, it asks for:
+  - Shop name, address, phone (printed on receipts)
+  - Language: English or Urdu
+  - Receipt printer and paper width (58 mm or 80 mm)
+  - Modules: turn on "Pharmacy" if you sell medicines
+  - Owner account: your name, username and a 4-6 digit PIN
+
+Remember the owner PIN. Without it nobody can change settings.
+
+
+3. USERS AND ROLES
+------------------
+  Cashier : sell, hold bills, take customer payments, search items
+  Manager : everything a cashier can do + items, purchases, returns, void
+  Owner   : everything + settings, users, reports, backup/restore
+
+Add users in Settings > User Accounts. Each person should log in with
+their own PIN so the records show who did what.
+After 5 wrong PINs, that user is locked for 1 minute.
+
+
+4. DAILY ROUTINE
+----------------
+  Morning : Log in > Cash > "Open shift" > count the drawer cash and enter it.
+  Day     : Sell on the Sale screen.
+  Evening : Cash > "Close shift" > count the drawer cash and enter it.
+            The app shows expected cash, counted cash and the difference.
+            Print the Day-end (Z) report.
+
+You cannot complete a sale until a shift is open.
+
+
+5. SALE SCREEN (KEYBOARD SHORTCUTS)
+-----------------------------------
+  F1     Search item (type name, short name or barcode)
+  Enter  Add the item / confirm
+  F2     Change unit (e.g. tablet <-> strip <-> box)
+  F3     Choose customer (needed for credit / khata sales)
+  F4     Discount (one line or the whole bill, Rs or %)
+  F5     Hold bill (customer will come back)
+  F6     Recall a held bill
+  F8     Payment (cash, credit, or both) - shows change to give back
+  F9     Print the last receipt again
+  Esc    Close a window / cancel
+
+A barcode scanner works like typing + Enter: just scan.
+Held bills stay saved even if the power goes off.
+
+Credit (khata) sale: press F3, choose the customer, press F8 and put
+some or all of the amount on credit. If the customer has a credit limit,
+the app will not allow more credit than the limit.
+
+Return or void: open the invoice, then "Return selected items" or Void.
+Void needs a manager or owner PIN.
+
+
+6. ITEMS
+--------
+Items screen > "+ Add Item" (or Insert key).
+  - Prices are entered in rupees, e.g. 3.50
+  - Base unit = the smallest unit you sell (tablet, piece, gram)
+  - Packs = bigger units, e.g. "Box" with factor 100 means 1 box = 100 tablets
+  - Opening stock = how many you have right now (in base units)
+  - "Track lots" = keep batch numbers and expiry dates (medicines)
+
+Many items at once: Items > "Import CSV". Click "Copy Sample CSV Format"
+to see the columns. Bad rows are shown in red and are skipped.
+
+
+7. PURCHASES (STOCK IN)
+-----------------------
+Purchases > New purchase: choose supplier, enter bill number, then add
+items with quantity and cost. For batch items, enter batch no + expiry.
+Saving adds the stock and updates what you owe the supplier.
+Purchase return: open the purchase and press Return.
+
+
+8. CUSTOMERS, SUPPLIERS AND KHATA
+---------------------------------
+Parties screen: add customers and suppliers, with opening balance.
+  - Receive payment : customer pays you money they owe
+  - Make payment    : you pay a supplier
+  - Statement       : full history between two dates, printable
+Positive balance = they owe the shop. Negative = the shop owes them.
+
+
+9. PHARMACY (only if the Pharmacy module is on)
+-----------------------------------------------
+  - Sales automatically use the batch that expires first.
+  - Expired batches cannot be sold without the OWNER's PIN.
+  - Expiry screen: medicines expiring in 30 / 60 / 90 days.
+    "Copy as WhatsApp text" to send the list to a supplier.
+  - Want-book: items that are running low are added automatically.
+    You can also add items by hand. Copy as WhatsApp text to order.
+  - Dashboard shows near-expiry and want-book counts.
+
+
+10. REPORTS (owner only)
+------------------------
+Sales by day / item / user, profit, stock value, low stock,
+customer receivables, supplier payables.
+Choose dates, then Print or Export CSV (opens in Excel).
+
+
+11. BACKUP - PLEASE READ
+------------------------
+The app makes a backup automatically every day and when you close it.
+It keeps the last 30 backups.
+
+Power cuts, virus or a dead hard disk can lose everything. So:
+  - Settings > Backup & Restore > set an "extra folder" on a USB stick,
+    and/or press "Backup now" and copy the file somewhere safe every week.
+  - Restore (owner only): Settings > Backup & Restore > Restore.
+    The app saves a safety copy first, then restarts with the old data.
+
+
+12. SETTINGS (owner only)
+-------------------------
+  - Shop information, language (English / Urdu)
+  - Printer, paper width, print after sale: Automatically / Ask / Never
+  - Allow selling below zero stock (off by default)
+  - Users, modules, backup & restore
+Light / dark mode: click the sun / moon button at the top of the menu.
+
+
+13. PROBLEMS
+------------
+  Receipt does not print : Settings > Printer > choose the printer >
+                           Test print. The sale is still saved; press F9 later.
+  "Not enough stock"     : add a purchase, or check the item's stock.
+  "No shift is open"     : Cash > Open shift.
+  Forgot cashier PIN     : owner deactivates that user in Settings > Users
+                           and adds them again with a new PIN.
+  Forgot OWNER PIN       : there is no reset yet. Write it down somewhere safe.

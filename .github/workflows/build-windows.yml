@@ -39,5 +39,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: retail-pos-windows-installer
-          path: release/*.exe
+          path: |
+            release/*.exe
+            docs/USER_GUIDE.txt
           if-no-files-found: error
