@@ -11,7 +11,84 @@
     "reports": "Reports",
     "settings": "Settings",
     "setup": "Setup",
-    "expiry": "Expiry"
+    "expiry": "Expiry",
+    "login": "Login",
+    "logout": "Logout"
+  },
+  "roles": {
+    "owner": "Owner",
+    "manager": "Manager",
+    "cashier": "Cashier"
+  },
+  "auth": {
+    "loginTitle": "Point of Sale Login",
+    "loginSubtitle": "Select your user account and enter your 4–6 digit PIN",
+    "selectUser": "Select User Account",
+    "enterPin": "Enter PIN",
+    "pinPlaceholder": "Enter 4–6 digit PIN",
+    "loginButton": "Login",
+    "invalidPin": "Invalid PIN. Please try again.",
+    "noUsersTitle": "No Users Found",
+    "noUsersSubtitle": "Setup wizard must be completed to create an initial owner account.",
+    "goToSetup": "Open First-Run Wizard",
+    "logout": "Logout",
+    "currentUser": "Logged in as"
+  },
+  "wizard": {
+    "title": "First-Run Setup Wizard",
+    "subtitle": "Configure your shop in under 3 minutes",
+    "stepShop": "Shop Details",
+    "stepBusiness": "Business Type",
+    "stepOwner": "Owner Account",
+    "stepPrinter": "Printer & Paper",
+    "stepLanguage": "Language",
+    "shopName": "Shop Name",
+    "shopAddress": "Shop Address",
+    "shopPhone": "Shop Phone",
+    "receiptFooter": "Receipt Footer Note",
+    "generalRetail": "General Retail POS",
+    "generalRetailDesc": "Standard point of sale without drug schedules or batch expiry.",
+    "pharmacyRetail": "Pharmacy / Medical Store",
+    "pharmacyRetailDesc": "Enables batch & expiry tracking, FEFO allocation, and expiry console.",
+    "ownerName": "Owner Full Name",
+    "ownerUsername": "Username (e.g. owner)",
+    "ownerPin": "Owner PIN (4–6 digits)",
+    "confirmPin": "Confirm PIN",
+    "pinMismatch": "PINs do not match",
+    "pinLengthError": "PIN must be between 4 and 6 digits",
+    "printerName": "Printer Device Name (Leave blank for default)",
+    "paperWidth": "Receipt Paper Width",
+    "testPrint": "Test Print",
+    "testPrintSuccess": "Test print simulated: Printer test successful.",
+    "selectLanguage": "Application Language",
+    "english": "English",
+    "urdu": "اردو (Urdu)",
+    "next": "Next",
+    "back": "Back",
+    "finish": "Complete Setup & Launch POS"
+  },
+  "settings": {
+    "saved": "Settings saved successfully",
+    "save": "Save Settings",
+    "shopInfo": "Shop Information",
+    "printer": "Printer & Paper Settings",
+    "language": "Interface Language",
+    "modules": "Industry Modules",
+    "users": "User Accounts",
+    "addUser": "Add User",
+    "deactivate": "Deactivate",
+    "deactivateConfirm": "Are you sure you want to deactivate this user?",
+    "name": "Full Name",
+    "username": "Username",
+    "role": "Role",
+    "pin": "PIN (4–6 digits)",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "cancel": "Cancel",
+    "pharmacyModule": "Pharmacy Module",
+    "pharmacyModuleDesc": "Track batches, expiry dates, and supplier returns.",
+    "ownerOnlyNotice": "Settings and user management require Owner permissions."
   },
   "screens": {
     "sale": {
@@ -52,7 +129,11 @@
     }
   },
   "common": {
-    "comingSoon": "Under development for upcoming milestones."
+    "comingSoon": "Under development for upcoming milestones.",
+    "required": "This field is required",
+    "success": "Success",
+    "error": "Error",
+    "close": "Close"
   },
   "migrationError": {
     "title": "Database Initialization Failed",

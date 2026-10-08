@@ -11,7 +11,84 @@
     "reports": "رپورٹس (Reports)",
     "settings": "سیٹنگز (Settings)",
     "setup": "سیٹ اپ (Setup)",
-    "expiry": "ایکسپائری (Expiry)"
+    "expiry": "ایکسپائری (Expiry)",
+    "login": "لاگ ان (Login)",
+    "logout": "لاگ آؤٹ (Logout)"
+  },
+  "roles": {
+    "owner": "مالک (Owner)",
+    "manager": "منیجر (Manager)",
+    "cashier": "کیشیئر (Cashier)"
+  },
+  "auth": {
+    "loginTitle": "پوائنٹ آف سیل لاگ ان",
+    "loginSubtitle": "اپنا صارف منتخب کریں اور 4 سے 6 ہندسوں کا پن درج کریں",
+    "selectUser": "صارف اکاؤنٹ منتخب کریں",
+    "enterPin": "پن کوڈ درج کریں",
+    "pinPlaceholder": "4–6 ہندسوں کا پن",
+    "loginButton": "لاگ ان کریں",
+    "invalidPin": "غلط پن کوڈ۔ دوبارہ کوشش کریں۔",
+    "noUsersTitle": "کوئی صارف موجود نہیں ہے",
+    "noUsersSubtitle": "مالک کا اکاؤنٹ بنانے کے لیے پہلے سیٹ اپ وزرڈ مکمل کریں۔",
+    "goToSetup": "سیٹ اپ وزرڈ کھولیں",
+    "logout": "لاگ آؤٹ",
+    "currentUser": "موجودہ صارف"
+  },
+  "wizard": {
+    "title": "ابتدائی سیٹ اپ رہنمائی",
+    "subtitle": "3 منٹ میں اپنی دکان کی بنیادی ترتیبات مکمل کریں",
+    "stepShop": "دکان کی تفصیلات",
+    "stepBusiness": "کاروبار کی قسم",
+    "stepOwner": "مالک کا اکاؤنٹ",
+    "stepPrinter": "پرنٹر اور کاغذ",
+    "stepLanguage": "زبان",
+    "shopName": "دکان کا نام",
+    "shopAddress": "دکان کا پتہ",
+    "shopPhone": "فون نمبر",
+    "receiptFooter": "رسید کے نیچے کا پیغام",
+    "generalRetail": "عام ریٹیل (جنرل اسٹور، کریانہ، مارٹ)",
+    "generalRetailDesc": "بغیر میعاد ایکسپائری اور دوا کے شیڈول کے معیاری پی او ایس۔",
+    "pharmacyRetail": "فارمیسی / میڈیکل اسٹور",
+    "pharmacyRetailDesc": "بیچ، ایکسپائری کی تاریخیں، فیفو (FEFO) اور ایکسپائری کنسول شامل ہیں۔",
+    "ownerName": "مالک کا مکمل نام",
+    "ownerUsername": "یوزر نام (مثلاً owner)",
+    "ownerPin": "مالک کا پن کوڈ (4–6 ہندسے)",
+    "confirmPin": "پن کوڈ کی تصدیق",
+    "pinMismatch": "دونوں پن کوڈ ایک جیسے نہیں ہیں",
+    "pinLengthError": "پن کوڈ 4 سے 6 ہندسوں کا ہونا ضروری ہے",
+    "printerName": "پرنٹر کا نام (ڈیفالٹ کے لیے خالی چھوڑیں)",
+    "paperWidth": "رسید کے کاغذ کی چوڑائی",
+    "testPrint": "پرنٹر ٹیسٹ کریں",
+    "testPrintSuccess": "ٹیسٹ پرنٹ کامیابی سے بھیج دیا گیا (سمولیٹڈ)۔",
+    "selectLanguage": "ایپ کی زبان",
+    "english": "English (انگریزی)",
+    "urdu": "اردو (Urdu)",
+    "next": "آگے",
+    "back": "پیچھے",
+    "finish": "سیٹ اپ مکمل کریں اور پی او ایس کھولیں"
+  },
+  "settings": {
+    "saved": "ترتیبات کامیابی سے محفوظ ہوگئیں",
+    "save": "ترتیبات محفوظ کریں",
+    "shopInfo": "دکان کی معلومات",
+    "printer": "پرنٹر اور رسید کا کاغذ",
+    "language": "ایپ کی زبان",
+    "modules": "کاروباری ماڈیولز",
+    "users": "صارفین کے اکاؤنٹس",
+    "addUser": "نیا صارف شامل کریں",
+    "deactivate": "غیر فعال کریں",
+    "deactivateConfirm": "کیا آپ واقعی اس صارف کو غیر فعال کرنا چاہتے ہیں؟",
+    "name": "مکمل نام",
+    "username": "یوزر نام",
+    "role": "کردار",
+    "pin": "پن کوڈ (4–6 ہندسے)",
+    "status": "حالت",
+    "active": "فعال",
+    "inactive": "غیر فعال",
+    "cancel": "منسوخ",
+    "pharmacyModule": "فارمیسی ماڈیول",
+    "pharmacyModuleDesc": "بیچ، ایکسپائری کی تاریخیں اور ادویات کی واپسی کا نظام۔",
+    "ownerOnlyNotice": "سیٹنگز اور صارفین کی دیکھ بھال صرف مالک کے اختیار میں ہے۔"
   },
   "screens": {
     "sale": {
@@ -52,7 +129,11 @@
     }
   },
   "common": {
-    "comingSoon": "اگلے مراحل میں تیار کیا جائے گا۔"
+    "comingSoon": "اگلے مراحل میں تیار کیا جائے گا۔",
+    "required": "یہ خانہ پر کرنا لازمی ہے",
+    "success": "کامیابی",
+    "error": "خرابی",
+    "close": "بند کریں"
   },
   "migrationError": {
     "title": "ڈیٹا بیس کی تیاری میں خرابی",

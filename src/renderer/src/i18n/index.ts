@@ -15,4 +15,9 @@ i18n.use(initReactI18next).init({
   }
 })
 
+export function changeAppLanguage(lang: 'en' | 'ur'): void {
+  i18n.changeLanguage(lang)
+  document.documentElement.dir = lang === 'ur' ? 'rtl' : 'ltr'
+}
+
 export default i18n

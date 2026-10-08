@@ -129,3 +129,45 @@ Newest entry at the top. Gemini adds a **Build** entry after each milestone; Cla
 ### [Review] M2 fixes — 2026-10-08
 - Verdict: **approved**. All 3 fixes verified; typecheck, lint, 52 tests pass.
 - Next: M3 (remember: `modules:setEnabled` and settings writes are owner-only).
+
+### [Build] M3 — Settings, users, first-run wizard, login — 2026-10-08
+- Summary: Implemented settings service with typed keys and transactional writes, users service with crypto.scrypt PIN hashing/verification and last-owner protection, auth session management with role-based IPC permission checks (owner-only for modules:setEnabled and settings/user writes), first-run setup wizard, login screen with user picker & keypad/keyboard support, role-based sidebar menu hiding for cashier, and full English & Urdu i18n support with runtime language switching.
+- Files: src/shared/types/index.ts, src/shared/ipc-contract.ts, src/preload/index.ts, src/main/core/settings/service.ts, src/main/core/settings/service.test.ts, src/main/core/users/service.ts, src/main/core/users/service.test.ts, src/main/core/auth/service.ts, src/main/core/auth/service.test.ts, src/main/ipc/register.ts, src/renderer/src/context/AuthContext.tsx, src/renderer/src/screens/setup/SetupSteps.tsx, src/renderer/src/screens/SetupScreen.tsx, src/renderer/src/screens/LoginScreen.tsx, src/renderer/src/screens/settings/UsersTab.tsx, src/renderer/src/screens/SettingsScreen.tsx, src/renderer/src/app/layout.tsx, src/renderer/src/app/routes.tsx, src/renderer/src/app/App.tsx, src/renderer/src/i18n/index.ts, src/renderer/src/i18n/en.json, src/renderer/src/i18n/ur.json, docs/TASKS.md, docs/REVIEW_LOG.md
+- Checks: typecheck ✅ lint ✅ tests ✅ (67 tests)
+- Manual test steps:
+  1. Delete local dev DB if needed (`rm -rf ~/.config/retail-pos/data/shop.db*`) and run `npm run dev`.
+  2. Verify app automatically detects 0 users and opens the First-Run Setup Wizard at `/setup`.
+  3. Fill in shop details, choose business type (e.g. Pharmacy), create Owner with PIN (e.g. 1234), test printer button (shows simulated notification), select language, and click "Complete Setup & Launch POS".
+  4. Verify app logs in as Owner and redirects to the Sale screen (`/`). Verify sidebar shows all core items, Expiry (if pharmacy was chosen), Settings, and user badge in footer.
+  5. Open Settings (`/settings`), go to Users tab, click "Add User", and create a Cashier (username `cashier1`, PIN `5555`).
+  6. Click Logout in the sidebar footer. Verify the Login screen appears with both Owner and Cashier listed.
+  7. Select Cashier, enter PIN `5555` using keyboard or on-screen keypad, and click Login.
+  8. Verify Cashier is redirected to Sale screen, and "Settings" is hidden from the sidebar. Attempting to navigate to `#/settings` redirects back to `/`.
+- Open questions / deviations:
+  - None.
+
+
+### [Review] M3 — 2026-10-08
+- Verdict: **fixes needed**. Good: scrypt + random salt + timingSafeEqual, pin_hash never leaves main, owner-only checks on settings/users/modules, last-owner protection, zod on inputs.
+- Fixes:
+  1. **Replace the "no users = everything allowed" bypass with one setup call.** Right now `checkPermission` allows *any* write while no users exist, and the wizard makes 3 separate calls (settings → modules → users). If one fails, setup is half-done, and the first user could be created as a cashier (then no owner exists). Do this instead:
+     - Add IPC `setup:complete` with zod input `{ shop: {name, address, phone}, language, paperWidth, printerName, moduleIds: string[], owner: {name, username, pin} }`.
+     - In main: if any user exists → return `err('ALREADY_SET_UP')`. Otherwise, in **one `db.transaction()`**: validate module IDs, apply their migrations, save settings + `enabled_modules`, create the user with role **forced to `'owner'`**. Then call `initModules` and log the owner in.
+     - Remove the `if (!hasUsers(db)) return ok()` branch from `checkPermission`.
+     - Wizard calls only `setup:complete`.
+     - Tests: setup succeeds once; second call returns ALREADY_SET_UP; a failing module migration leaves zero users and no settings saved.
+  2. **Lock out PIN guessing.** A 4-digit PIN can be guessed by a cashier. In `auth/service.ts` keep an in-memory counter per userId: after **5 wrong PINs**, refuse logins for that user for **60 seconds** (`err('LOCKED', 'Too many wrong PINs. Try again in 1 minute.')`). Reset the counter on a successful login. Show the message on the Login screen. Tests with `vi.useFakeTimers`.
+  3. `auth:login` input: `pin: z.string().regex(/^\d{4,6}$/)` and `userId: z.number().int().positive()` (same style as users:create).
+
+### [Build] Fixes for M3 — 2026-10-08
+- Summary: Applied all 3 review fixes from Claude's review of M3. Added atomic setup:complete IPC running module migrations, settings persistence, and forced owner creation in a single transaction while removing unauthenticated bypass; implemented in-memory PIN lockout after 5 failed attempts for 60 seconds with error messaging; and strengthened auth:login input validation.
+- Fix details:
+  - Fix 1: Added `setup:complete` IPC with Zod validation. If users exist, returns `ALREADY_SET_UP`. Inside a single `db.transaction()`: validates module IDs, runs module migrations, saves settings + `enabled_modules`, and creates owner user with role forced to `'owner'`. Removed `if (!hasUsers(db)) return ok()` bypass from `checkPermission`. Updated Setup wizard to call `window.api.setup.complete`. Added tests for single successful run, rejection on second call, and rollback leaving zero users and no settings if migration fails.
+  - Fix 2: Added in-memory failed attempt tracking per `userId` in `src/main/core/auth/service.ts`. After 5 failed PIN attempts, locks user out for 60 seconds returning `err({ code: 'LOCKED', message: 'Too many wrong PINs. Try again in 1 minute.' })`. Counter resets on successful login. Displayed lockout error message on `LoginScreen`. Added tests using `vi.useFakeTimers()`.
+  - Fix 3: Updated `auth:login` input schema in `src/main/ipc/register.ts` to require `userId: z.number().int().positive()` and `pin: z.string().regex(/^\d{4,6}$/)`.
+- Checks: typecheck ✅ lint ✅ tests ✅ (72 tests)
+
+
+### [Review] M3 fixes — 2026-10-08
+- Verdict: **approved**. One-transaction `setup:complete` with forced owner, bypass removed, PIN lockout (5 tries / 60 s), stricter login validation. Typecheck, lint, 72 tests pass.
+- Next: owner clicks through the M3 manual test steps, then M4.

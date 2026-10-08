@@ -28,12 +28,12 @@ Mark items `[x]` when done. Each milestone ends with: typecheck + lint + tests p
 - **Done when:** with pharmacy enabled the menu item appears; with it disabled it doesn't; app works either way.
 
 ## M3 — Settings, users, first-run wizard, login
-- [ ] Settings service + IPC (get/set typed keys)
-- [ ] Users service: create, list, deactivate, PIN hash (Node `crypto.scrypt`), verify PIN; roles
-- [ ] First-run wizard (§8.8) — printer test can be a stub until M8
-- [ ] Login screen: pick user, enter PIN (numeric keypad on screen + keyboard)
-- [ ] Role-based menu hiding and IPC permission checks (`modules:setEnabled` and settings writes = owner only)
-- [ ] i18n set up; all new strings in en.json + ur.json; language switch in Settings
+- [x] Settings service + IPC (get/set typed keys)
+- [x] Users service: create, list, deactivate, PIN hash (Node `crypto.scrypt`), verify PIN; roles
+- [x] First-run wizard (§8.8) — printer test can be a stub until M8
+- [x] Login screen: pick user, enter PIN (numeric keypad on screen + keyboard)
+- [x] Role-based menu hiding and IPC permission checks (`modules:setEnabled` and settings writes = owner only)
+- [x] i18n set up; all new strings in en.json + ur.json; language switch in Settings
 - **Done when:** fresh install → wizard → login → Sale screen; cashier can't open Settings.
 
 ## M4 — Items
