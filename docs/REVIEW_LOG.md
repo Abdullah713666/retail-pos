@@ -220,3 +220,27 @@ Newest entry at the top. Gemini adds a **Build** entry after each milestone; Cla
 
 ### [Review] M4 fixes — 2026-10-08
 - Verdict: **approved**. Import re-parses in main, shared barcode check, LOT_REQUIRED guard, LIKE escaping, zod caps. Typecheck + 95 tests pass. Note for M6/M12: when a "Track lots" checkbox is added to the item form, hide opening stock when ticked.
+
+
+### [Build] M5 — Parties + khata — 2026-10-08
+- Summary: Customers and suppliers CRUD (soft deactivate, search, paging) with opening balance posted to the ledger in the same transaction as the party insert. New ledger service is the only code that inserts into `party_ledger`: `postEntry`, `getBalance`, `getStatement` (opening balance before the start date + running balance + totals) and `recordPayment`. `postEntry` is a single INSERT with no transaction of its own, so M6/M7 can call it inside their own `db.transaction()`. Parties screen (Customers / Suppliers tabs) with receive/make payment dialog and a printable statement (`window.print()` with a print stylesheet).
+- Sign convention (also in the header comment of `ledger/service.ts`): `balance = SUM(debit) - SUM(credit)`, same for both party types. Positive = party owes the shop; negative = shop owes the party (or customer advance). sale = debit, payment_in = credit (customer); purchase = credit, payment_out = debit (supplier). Customer opening balance = debit; supplier opening balance = credit. `postEntry` enforces side and party type for sale/payment_in/purchase/payment_out.
+- Files: src/shared/types/parties.ts, src/shared/types/index.ts, src/shared/ipc-contract.ts, src/preload/index.ts, src/main/ipc/register.ts, src/main/core/ledger/{service,ipc,service.test}.ts, src/main/core/parties/{service,ipc,permissions,service.test,permissions.test}.ts, src/renderer/src/screens/PartiesScreen.tsx, src/renderer/src/screens/parties/{PartyFormModal,PaymentModal,StatementModal,BalanceText}.tsx, src/renderer/src/app/print.css, src/renderer/src/main.tsx, src/renderer/src/i18n/en.json, src/renderer/src/i18n/ur.json, docs/TASKS.md, docs/REVIEW_LOG.md
+- Checks: typecheck ✅ lint ✅ tests ✅ (119 tests, 24 new). Not run by hand (`npm run dev` needs a display); UI is typechecked and linted only.
+- Manual test steps:
+  1. `npm run dev`, log in as Owner, open Parties. Press Insert, add customer "Ali" with opening balance 1500 -> list shows Rs 1,500.00 to receive.
+  2. Click the cash icon on Ali, receive 500 -> balance Rs 1,000.00. Open the statement icon: opening row, payment row, closing balance 1,000.00. Set From = today: opening balance carries 1,500 or 1,000 depending on entry date; check running balance. Click Print and check only the statement prints.
+  3. Suppliers tab: add "Hamid Traders" with opening 7000 (you owe) -> Rs 7,000.00 to pay. Make payment 2000 -> 5,000.00 to pay.
+  4. Deactivate a party (confirm dialog), switch the status filter to All, reactivate.
+  5. Log in as Cashier: no Suppliers tab, no credit limit / opening balance fields, no deactivate button; receiving a customer payment works.
+- Open questions / deviations:
+  - Overpayment is allowed (balance flips to the other side, shown as "to pay" for a customer = advance). The payment dialog shows "Balance after" so a typo is visible. Say if you want it blocked.
+  - Opening balance can only be entered when creating a party (later changes should be an `adjust` entry; no UI for adjustments yet).
+  - Credit limit is stored and editable but not enforced yet (M7 sale screen should check it).
+  - Cashiers can create/edit customers and take payments, but only manager/owner can set credit limit, opening balance, deactivate, or touch suppliers (`parties/permissions.ts`).
+  - Duplicate names are rejected only among ACTIVE parties of the same type (case-insensitive).
+  - `Statement` has `partyId`, not the party object, to avoid a ledger <-> parties import cycle; the screen already has the party.
+  - `ledger/ipc.ts` imports `checkPartyAccess` from `parties/ipc.ts` (role check by party type).
+
+### [Review] M5 — 2026-10-08
+- Verdict: **approved**. Single ledger entry point (`postEntry`, no own transaction), clear sign convention (debit − credit, + = party owes shop), opening balance in same transaction, statement with carried-in balance. Typecheck + 119 tests pass. Decisions accepted: overpayment allowed (advance); credit limit enforced in M7.

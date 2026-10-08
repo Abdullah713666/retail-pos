@@ -1,0 +1,28 @@
+/* Print only the element marked .print-area (e.g. the party statement). */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  /* Let long statements flow onto more pages instead of being clipped by the modal. */
+  .mantine-Modal-inner,
+  .mantine-Modal-content,
+  .mantine-Modal-body {
+    position: static !important;
+    overflow: visible !important;
+    transform: none !important;
+    max-height: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

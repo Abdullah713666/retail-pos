@@ -12,7 +12,16 @@ import type {
   ItemListResult,
   BarcodeLookupResult,
   CsvPreviewResult,
-  CsvImportResult
+  CsvImportResult,
+  Party,
+  CreatePartyInput,
+  UpdatePartyInput,
+  PartyFilter,
+  PartyListResult,
+  Statement,
+  StatementInput,
+  RecordPaymentInput,
+  LedgerEntry
 } from './types'
 
 export interface MigrationStatus {
@@ -67,5 +76,17 @@ export interface IpcApi {
     reactivate: (id: number) => Promise<Result<void>>
     previewCsv: (csvContent: string) => Promise<Result<CsvPreviewResult>>
     importCsv: (csvContent: string) => Promise<Result<CsvImportResult>>
+  }
+  parties: {
+    list: (filter: PartyFilter) => Promise<Result<PartyListResult>>
+    get: (id: number) => Promise<Result<Party | null>>
+    create: (input: CreatePartyInput) => Promise<Result<Party>>
+    update: (input: UpdatePartyInput) => Promise<Result<Party>>
+    deactivate: (id: number) => Promise<Result<void>>
+    reactivate: (id: number) => Promise<Result<void>>
+  }
+  ledger: {
+    statement: (input: StatementInput) => Promise<Result<Statement>>
+    recordPayment: (input: RecordPaymentInput) => Promise<Result<LedgerEntry>>
   }
 }

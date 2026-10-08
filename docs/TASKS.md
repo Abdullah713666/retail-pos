@@ -44,9 +44,9 @@ Mark items `[x]` when done. Each milestone ends with: typecheck + lint + tests p
 - **Done when:** can import 5,000 items from CSV in < 10 s and search returns in < 100 ms.
 
 ## M5 — Parties + khata
-- [ ] Customers and suppliers CRUD, opening balance
-- [ ] Ledger service: post entries, balance, statement between dates
-- [ ] Receive payment / make payment screens; party statement printable
+- [x] Customers and suppliers CRUD, opening balance
+- [x] Ledger service: post entries, balance, statement between dates
+- [x] Receive payment / make payment screens; party statement printable
 - **Done when:** ledger tests pass and balances match statements.
 
 ## M6 — Purchases (stock in)

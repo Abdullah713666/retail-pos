@@ -25,6 +25,8 @@ import {
   checkPermission
 } from '../core/auth/service'
 import { registerItemsIpc } from '../core/items/ipc'
+import { registerPartiesIpc } from '../core/parties/ipc'
+import { registerLedgerIpc } from '../core/ledger/ipc'
 
 let currentMigrationStatus: MigrationStatus = { success: true, error: null }
 
@@ -174,4 +176,8 @@ export function registerIpcHandlers(): void {
 
   // Items & Categories
   registerItemsIpc()
+
+  // Parties & Ledger (khata)
+  registerPartiesIpc()
+  registerLedgerIpc()
 }

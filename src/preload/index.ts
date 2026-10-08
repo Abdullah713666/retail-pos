@@ -6,7 +6,12 @@ import type {
   SetupCompleteInput,
   CreateItemInput,
   UpdateItemInput,
-  ItemFilter
+  ItemFilter,
+  PartyFilter,
+  CreatePartyInput,
+  UpdatePartyInput,
+  StatementInput,
+  RecordPaymentInput
 } from '../shared/types'
 
 const api: IpcApi = {
@@ -56,6 +61,18 @@ const api: IpcApi = {
     reactivate: (id: number) => ipcRenderer.invoke('items:reactivate', id),
     previewCsv: (csvContent: string) => ipcRenderer.invoke('items:previewCsv', csvContent),
     importCsv: (csvContent: string) => ipcRenderer.invoke('items:importCsv', csvContent)
+  },
+  parties: {
+    list: (filter: PartyFilter) => ipcRenderer.invoke('parties:list', filter),
+    get: (id: number) => ipcRenderer.invoke('parties:get', id),
+    create: (input: CreatePartyInput) => ipcRenderer.invoke('parties:create', input),
+    update: (input: UpdatePartyInput) => ipcRenderer.invoke('parties:update', input),
+    deactivate: (id: number) => ipcRenderer.invoke('parties:deactivate', id),
+    reactivate: (id: number) => ipcRenderer.invoke('parties:reactivate', id)
+  },
+  ledger: {
+    statement: (input: StatementInput) => ipcRenderer.invoke('ledger:statement', input),
+    recordPayment: (input: RecordPaymentInput) => ipcRenderer.invoke('ledger:recordPayment', input)
   }
 }
 
