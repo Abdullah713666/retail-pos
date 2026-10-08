@@ -13,7 +13,7 @@
     "lint": "eslint src --ext .ts,.tsx",
     "test": "vitest run",
     "build:linux": "electron-vite build && electron-builder --linux",
-    "build:win": "electron-vite build && electron-builder --win --x64"
+    "build:win": "electron-vite build && electron-builder --win --x64 --publish never"
   },
   "dependencies": {
     "@mantine/core": "^7.17.0",
